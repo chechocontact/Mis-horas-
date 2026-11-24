@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mis horas de eventos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: práctica, rápida, de staff de eventos; clara como una planilla de pago.
+   IDEA: la credencial / manilla de acceso del staff del evento.
+   PICTURE: tarjeta-credencial con el total a pagar en grande, arriba de todo.
+   COLOUR and TYPE: blanco, tinta casi negra, naranja manilla #ff5a1f; Archivo 800 + Inter.
+   LAYOUT: una columna; credencial, formulario, lista. Dos columnas sobre 900px. */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#121212);--ink:light-dark(#141414,#f2f2f2);--mut:light-dark(#5f5f5f,#a9a9a9);--line:light-dark(#e4e4e4,#2c2c2c);--card:light-dark(#f6f6f4,#1c1c1c);--acc:#ff5a1f;--accInk:#ffffff;--bad:light-dark(#c2261d,#ff7b72)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif;overflow-x:clip}
+h1,h2,.big{font-family:Archivo,Inter,sans-serif}
+h1{font-size:clamp(28px,5vw,40px);line-height:1.05;margin:0;font-weight:800;text-wrap:balance}
+h2{font-size:20px;margin:0 0 12px;font-weight:700}
+.wrap{max-width:1100px;margin:0 auto;padding:clamp(20px,4vw,48px) max(5vw,16px)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.mut{color:var(--mut);font-size:14px}
+button,input,select{font:inherit;font-size:16px}
+button{min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:0 16px;cursor:pointer;font-weight:600}
+button.pri{background:var(--acc);border-color:var(--acc);color:var(--accInk)}
+button.link{border:0;background:none;padding:0 6px;color:var(--mut);text-decoration:underline;min-height:44px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+button:disabled{opacity:.55;cursor:default}
+label{display:block;font-size:14px;font-weight:600;margin:0 0 6px}
+input,select{width:100%;min-height:46px;border:1px solid var(--line);border-radius:10px;padding:0 12px;background:var(--bg);color:var(--ink)}
+.field{margin-bottom:14px}
+.row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.err{color:var(--bad);font-size:14px;min-height:20px;margin:4px 0 0}
+/* login */
+.login{max-width:420px;margin:6vh auto 0}
+.badge{background:var(--acc);color:var(--accInk);border-radius:18px;padding:28px 24px 24px;position:relative;margin-bottom:24px;box-shadow:0 14px 30px -14px rgba(255,90,31,.55)}
+.badge::before{content:"";position:absolute;top:12px;left:50%;width:56px;height:10px;margin-left:-28px;border-radius:6px;background:var(--bg)}
+.badge h1{margin-top:14px}
+.tabs{display:flex;gap:8px;margin-bottom:16px}
+.tabs button{flex:1}
+.tabs button[aria-selected=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+/* app */
+.grid{display:grid;gap:24px}
+@media(min-width:900px){.grid{grid-template-columns:minmax(0,5fr) minmax(0,6fr);align-items:start}.side{position:sticky;top:16px}}
+.cred{background:var(--acc);color:var(--accInk);border-radius:18px;padding:22px 22px 18px;position:relative;overflow:hidden}
+.cred .lbl{font-size:14px;opacity:.9}
+.cred .big{font-size:clamp(36px,8vw,52px);font-weight:800;line-height:1.05;white-space:nowrap}
+.cred .sub{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;font-size:15px}
+.cred::after{content:"";position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;border:22px solid rgba(255,255,255,.16)}
+.panel{background:var(--card);border-radius:16px;padding:20px;margin-top:20px}
+.calc{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:12px 14px;border-radius:10px;background:var(--bg);margin-bottom:14px;border:1px dashed var(--line)}
+.calc b{font-family:Archivo,sans-serif;font-size:22px;white-space:nowrap}
+.acts{display:flex;gap:10px;flex-wrap:wrap}
+.acts .pri{flex:1}
+.list{list-style:none;margin:0;padding:0}
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.item .ev{font-weight:600}
+.item .amt{font-family:Archivo,sans-serif;font-weight:700;text-align:right;white-space:nowrap;font-size:18px}
+.item .meta{color:var(--mut);font-size:14px}
+.item .ops{grid-column:1/-1;display:flex;gap:4px;margin-left:-6px}
+.chip{display:inline-block;font-size:13px;padding:1px 8px;border-radius:20px;background:var(--card);border:1px solid var(--line);white-space:nowrap}
+.sum{display:grid;gap:6px;margin:6px 0 14px}
+.sum div{display:flex;justify-content:space-between;gap:10px;font-size:15px}
+.sum span:last-child{white-space:nowrap;font-weight:600}
+.empty{color:var(--mut);padding:28px 0;text-align:center}
+.rates{display:grid;gap:10px}
+.rates .r{display:grid;grid-template-columns:minmax(0,1fr) 140px;gap:10px;align-items:center}
+details summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 10px 10px 16px;border-radius:12px;display:flex;align-items:center;gap:10px;max-width:calc(100% - 32px);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.toast button{background:none;border:0;color:var(--acc);min-height:36px}
+.aux{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;text-align:left;border-style:dashed}
+.aux .tick{width:22px;height:22px;border-radius:6px;border:2px solid var(--line);flex:none;display:grid;place-items:center;font-size:14px;line-height:1}
+.aux[aria-pressed=true]{background:var(--ink);color:var(--bg);border-style:solid;border-color:var(--ink)}
+.aux[aria-pressed=true] .tick{background:var(--acc);border-color:var(--acc);color:#fff}
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:4px}
+.seg button{border:0;min-height:40px;padding:0 6px;border-radius:8px;background:none;font-size:15px}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.chip.t-montaje{background:#fff1e9;color:#a63a0e;border-color:#ffc9ad}
+.chip.t-desmontaje{background:#eef1ff;color:#2d3f9e;border-color:#c8d0ff}
+:root[data-theme=dark] .chip.t-montaje,:root[data-theme=dark] .chip.t-desmontaje{background:var(--card);color:var(--ink)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) .chip.t-montaje,:root:not([data-theme=light]) .chip.t-desmontaje{background:var(--card);color:var(--ink)}}
+.hide{display:none!important}
+.status{font-size:13px;color:var(--mut)}
+@media(prefers-reduced-motion:no-preference){.cred .big{transition:transform .2s}.cred .big.pop{transform:scale(1.04)}}
+@media(max-width:600px){.row2{grid-template-columns:minmax(0,1fr)}.rates .r{grid-template-columns:minmax(0,1fr) 120px}}
+</style>
+</head>
+<body>
+
+<div id="vLogin" class="wrap">
+  <div class="login">
+    <div class="badge">
+      <h1>Mis horas de eventos</h1>
+      <p style="margin:8px 0 0">Registra evento, cargo y horas. El pago se calcula solo.</p>
+    </div>
+    <div class="tabs" role="tablist">
+      <button id="tIn" role="tab" aria-selected="true">Iniciar sesión</button>
+      <button id="tUp" role="tab" aria-selected="false">Crear cuenta</button>
+    </div>
+    <form id="fLogin" autocomplete="on">
+      <div class="field"><label for="lu">Correo</label><input id="lu" type="email" inputmode="email" autocomplete="email" required autocapitalize="none" spellcheck="false"></div>
+      <div class="field"><label for="lp">Contraseña</label><input id="lp" type="password" autocomplete="current-password" required></div>
+      <div class="field hide" id="lp2w"><label for="lp2">Repite la contraseña</label><input id="lp2" type="password" autocomplete="new-password"></div>
+      <button class="pri" id="lgo" style="width:100%">Entrar</button>
+      <p class="err" id="lerr"></p>
+      <p style="margin:6px 0 0"><button type="button" class="link" id="forgot">¿Olvidaste tu contraseña?</button></p>
+      <p class="mut">Tus turnos se guardan en tu cuenta y solo tú puedes verlos. Al crear la cuenta te llegará un correo de confirmación.</p>
+    </form>
+  </div>
+</div>
+
+<div id="vApp" class="wrap hide">
+  <div class="top">
+    <div><h1>Mis horas</h1><div class="mut">Hola, <span id="who"></span> · <span class="status" id="st">Guardado</span></div></div>
+    <button id="out">Cerrar sesión</button>
+  </div>
+  <div class="grid">
+    <div class="side">
+      <div class="cred" aria-live="polite">
+        <div class="lbl" id="credLbl">Total a cobrar</div>
+        <div class="big" id="tot">$ 0</div>
+        <div class="sub"><span id="totH">0 horas</span><span id="totN">0 turnos</span></div>
+      </div>
+      <form class="panel" id="fRec">
+        <h2 id="fTitle">Añadir turno</h2>
+        <div class="field"><label for="ve">Lugar</label><select id="ve"></select></div>
+        <div class="field" id="esW"><label for="es">Evento</label><select id="es"></select><div class="mut" style="margin-top:4px">Agenda cargada al 24 nov 2026. Si no aparece, elige «Escribir otro evento».</div></div>
+        <div class="field hide" id="evW"><label for="ev">Nombre del evento</label><input id="ev" list="evList" placeholder="Ej. Feria empresarial"><datalist id="evList"></datalist></div>
+        <div class="field"><label id="tipoL">Tipo de turno</label><div class="seg" id="tipo" role="group" aria-labelledby="tipoL">
+          <button type="button" data-t="evento" aria-pressed="true">Evento</button><button type="button" data-t="montaje" aria-pressed="false">Montaje</button><button type="button" data-t="desmontaje" aria-pressed="false">Desmontaje</button></div></div>
+        <div class="row2">
+          <div class="field"><label for="fe">Fecha</label><input id="fe" type="date" required></div>
+          <div class="field"><label for="ho">Horas trabajadas</label><input id="ho" type="number" inputmode="decimal" min="0.25" step="0.25" required></div>
+        </div>
+        <div class="field"><label for="ca">Cargo</label><select id="ca"></select></div>
+        <div class="row2 hide" id="otroW">
+          <div class="field"><label for="on">Nombre del cargo</label><input id="on" placeholder="Ej. Logística"></div>
+          <div class="field"><label for="ov">Valor por hora</label><input id="ov" type="number" inputmode="numeric" min="0" step="100"></div>
+        </div>
+        <button type="button" class="aux" id="aux" aria-pressed="false"><span>Auxilio de transporte <b id="auxV" style="white-space:nowrap">+ $ 10.000</b></span><span class="tick" aria-hidden="true"></span></button>
+        <div class="calc"><span id="calcTxt">0 h × $ 0</span><b id="calc">$ 0</b></div>
+        <div class="acts"><button class="pri" id="sv">Añadir</button><button type="button" id="cx" class="hide">Cancelar</button></div>
+        <p class="err" id="ferr"></p>
+      </form>
+      <details class="panel">
+        <summary>Tarifas por hora</summary>
+        <div class="rates" id="rates"></div>
+        <p class="mut">Cambiar una tarifa afecta solo a los turnos nuevos.</p>
+      </details>
+    </div>
+    <div>
+      <div class="panel" style="margin-top:0">
+        <div class="row2">
+          <div class="field"><label for="q">Buscar evento</label><input id="q" type="search" placeholder="Escribe para filtrar"></div>
+          <div class="field"><label for="mo">Mes</label><select id="mo"></select></div>
+        </div>
+        <div class="sum" id="sum"></div>
+        <ul class="list" id="list"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast hide" id="toast" role="status"><span id="toastTxt"></span><button id="toastBtn">Deshacer</button></div>
+
+<script type="module">
+import {firebaseConfig} from './firebase-config.js';
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,sendPasswordResetEmail,sendEmailVerification} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import {initializeFirestore,getFirestore,persistentLocalCache,doc,getDoc,setDoc} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+{
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>'$ '+Math.round(n||0).toLocaleString('es-CO');
+const DEF_RATES={acreditador:7500,validador:7500,runner:8500,coordinador:10000};
+const NAMES={acreditador:'Acreditador',validador:'Validador',runner:'Runner',coordinador:'Coordinador',otro:'Otro'};
+const VENUES={vc:'Vive Claro Distrito Cultural',vmh:'Vive Claro Music Hall',sb:'Parque Simón Bolívar',mp:'Coliseo MedPlus',ar:'El Corazón de Bogotá Arena (antiguo Movistar Arena)',cp:'Estadio El Campín',otro:'Otro lugar (escribir)'};
+const CAT=[
+ ['vc','2026-11-19','Megaland Bacano'],['vc','2026-11-21','Anuel AA'],['vc','2026-11-28','Maná — Vivir Sin Aire Tour'],['vc','2026-12-05','Slayer + Kreator — Reign in Blood'],['vc','2026-12-12','Órale Wey Fest Mex 2026'],
+ ['vmh','2026-11-20','Silvana Estrada'],['vmh','2026-11-22','Silvana Estrada (2.ª fecha)'],['vmh','2026-11-24','Silvana Estrada (3.ª fecha)'],['vmh','2026-11-29','Daniel Caesar — Son of Spergy Tour'],['vmh','2027-02-20','TIMØ — Canto Pa No Llorar Tour'],
+ ['sb','2026-11-28','Salsa al Parque (día 1)'],['sb','2026-11-29','Salsa al Parque (día 2)'],['sb','2026-12-12','Sirius by Dreaming Festival (día 1)'],['sb','2026-12-13','Sirius by Dreaming Festival (día 2)'],['sb','2027-01-30','Anyma'],['sb','2027-03-19','Festival Estéreo Picnic 2027 (día 1)'],['sb','2027-03-20','Festival Estéreo Picnic 2027 (día 2)'],['sb','2027-03-21','Festival Estéreo Picnic 2027 (día 3)'],
+ ['mp','2026-11-13','Calvin Harris'],['mp','2026-11-17','Gorillaz'],['mp','2026-11-21','Chayanne — Bailemos Otra Vez Tour'],['mp','2026-12-02','The Strokes — Reality Awaits'],['mp','2026-12-04','Awakenings'],['mp','2027-04-17','Nanpa Básico'],
+ ['ar','2026-11-23','Hayley Williams'],['ar','2026-11-28','La Última del Año'],['ar','2026-12-04','Martin Garrix — Americas Tour'],['ar','2026-12-05','Bogotrakes 2'],['ar','2026-12-09','New Order'],['ar','2026-12-10','Soda Stereo — Ecos'],['ar','2026-12-11','Camilo — Tour 2026'],['ar','2026-12-12','Camilo — Tour 2026 (2.ª fecha)'],['ar','2026-12-18','Alcolirykoz — El Remate 2026'],['ar','2026-12-19','Jessi Uribe y Paola Jara'],['ar','2026-12-20','Jessi Uribe y Paola Jara (2.ª fecha)'],
+ ['cp','2026-11-21','Juntos de Nuevo — Misión Campín'],['cp','2026-12-04','Karol G — Tropitour (día 1)'],['cp','2026-12-05','Karol G — Tropitour (día 2)'],['cp','2026-12-06','Karol G — Tropitour (día 3)']
+].map(([v,d,n],i)=>({id:'c'+i,v,d,n}));
+let auth=null,db=null,ref=null,user='';
+let S={records:[],rates:{...DEF_RATES},aux:10000};
+let editing=null,mode='in',lastDel=null,toastT=null;
+const configured=firebaseConfig&&firebaseConfig.apiKey&&!/^PEGA/.test(firebaseConfig.apiKey);
+const ERR={'auth/invalid-credential':'Correo o contraseña incorrectos.','auth/wrong-password':'Correo o contraseña incorrectos.','auth/user-not-found':'Correo o contraseña incorrectos.','auth/invalid-login-credentials':'Correo o contraseña incorrectos.',
+ 'auth/email-already-in-use':'Ya hay una cuenta con ese correo. Inicia sesión o recupera tu contraseña.','auth/weak-password':'La contraseña debe tener al menos 6 caracteres.','auth/invalid-email':'Ese correo no es válido.',
+ 'auth/network-request-failed':'Sin conexión a internet. Inténtalo de nuevo.','auth/too-many-requests':'Demasiados intentos. Espera unos minutos.','auth/operation-not-allowed':'Falta activar «Correo/contraseña» en Firebase Authentication.'};
+const msg=ex=>ERR[ex&&ex.code]||('No se pudo completar ('+((ex&&ex.code)||'error')+').');
+
+// login
+function setMode(m){mode=m;$('tIn').setAttribute('aria-selected',m==='in');$('tUp').setAttribute('aria-selected',m==='up');
+  $('lp2w').classList.toggle('hide',m==='in');$('lgo').textContent=m==='in'?'Entrar':'Crear cuenta';
+  $('lp').autocomplete=m==='in'?'current-password':'new-password';$('lerr').textContent='';}
+$('tIn').onclick=()=>setMode('in');$('tUp').onclick=()=>setMode('up');
+try{const u=localStorage.getItem('horas_user');if(u)$('lu').value=u}catch(e){}
+
+if(!configured){$('lerr').textContent='Falta configurar Firebase: pega tus datos en firebase-config.js (mira el README).';$('lgo').disabled=true}
+else{
+  const app=initializeApp(firebaseConfig);auth=getAuth(app);auth.languageCode='es';
+  try{db=initializeFirestore(app,{localCache:persistentLocalCache()})}catch(e){db=getFirestore(app)}
+  $('lgo').disabled=true;$('lgo').textContent='Cargando…';
+  onAuthStateChanged(auth,async u=>{
+    $('lgo').disabled=false;setMode(mode);
+    if(!u){ref=null;user='';S={records:[],rates:{...DEF_RATES},aux:10000};$('vApp').classList.add('hide');$('vLogin').classList.remove('hide');return}
+    ref=doc(db,'usuarios',u.uid);user=u.email||'';
+    try{const snap=await getDoc(ref);const o=snap.exists()?snap.data():{};
+      S={records:Array.isArray(o.records)?o.records:[],rates:{...DEF_RATES,...(o.rates||{})},aux:Number.isFinite(+o.aux)?+o.aux:10000}}
+    catch(ex){$('lerr').textContent='No se pudieron cargar tus turnos: '+msg(ex);await signOut(auth);return}
+    try{localStorage.setItem('horas_user',user)}catch(e){}
+    enterApp();
+  });
+}
+
+$('fLogin').addEventListener('submit',async e=>{
+  e.preventDefault();const err=$('lerr');err.textContent='';if(!auth)return;
+  const u=$('lu').value.trim().toLowerCase(),p=$('lp').value;
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(u)){err.textContent='Escribe un correo válido.';return}
+  if(p.length<6){err.textContent='La contraseña debe tener al menos 6 caracteres.';return}
+  if(mode==='up'&&p!==$('lp2').value){err.textContent='Las contraseñas no coinciden.';return}
+  const b=$('lgo');b.disabled=true;const old=b.textContent;b.textContent='Un momento…';
+  try{
+    if(mode==='up'){const cred=await createUserWithEmailAndPassword(auth,u,p);
+      try{await sendEmailVerification(cred.user);toast('Cuenta creada. Te enviamos un correo de confirmación a '+u)}catch(e){toast('Cuenta creada. No se pudo enviar el correo de confirmación.')}}
+    else await signInWithEmailAndPassword(auth,u,p);
+    $('lp').value='';$('lp2').value='';
+  }catch(ex){err.textContent=msg(ex)}
+  finally{b.disabled=false;b.textContent=old}
+});
+$('forgot').onclick=async()=>{const err=$('lerr'),u=$('lu').value.trim().toLowerCase();if(!auth)return;
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(u)){err.textContent='Escribe tu correo arriba y vuelve a pulsar aquí.';return}
+  try{await sendPasswordResetEmail(auth,u);err.textContent='Si el correo está registrado, te llegó un enlace para crear una nueva contraseña.'}catch(ex){err.textContent=msg(ex)}};
+
+// saving: each change is written (Firestore keeps it on the device and syncs when there is signal)
+let inflight=0;
+async function save(){
+  if(!ref)return;inflight++;$('st').textContent='Guardando…';
+  const slow=setTimeout(()=>{if(inflight)$('st').textContent='Sin señal: guardado en el teléfono, se sincroniza solo'},4000);
+  try{await setDoc(ref,{records:S.records,rates:S.rates,aux:S.aux,updated:Date.now()});if(inflight===1)$('st').textContent='Guardado'}
+  catch(ex){$('st').textContent='No se guardó: '+msg(ex)}
+  finally{inflight--;clearTimeout(slow)}
+}
+
+function enterApp(){
+  $('vLogin').classList.add('hide');$('vApp').classList.remove('hide');$('who').textContent=user;
+  resetForm();renderRates();render();
+}
+$('out').onclick=()=>{if(auth)signOut(auth);setMode('in')};
+
+// form
+function fillCargos(){const v=$('ca').value;
+  $('ca').innerHTML=Object.keys(DEF_RATES).map(k=>`<option value="${k}">${NAMES[k]} — ${money(S.rates[k])}/h</option>`).join('')+'<option value="otro">Otro — ingresa valor</option>';
+  if(v)$('ca').value=v}
+function rate(){return $('ca').value==='otro'?(+$('ov').value||0):(+S.rates[$('ca').value]||0)}
+const auxOn=()=>$('aux').getAttribute('aria-pressed')==='true';
+function setAux(on){$('aux').setAttribute('aria-pressed',on);$('aux').querySelector('.tick').textContent=on?'✓':'';calc()}
+$('aux').onclick=()=>setAux(!auxOn());
+function calc(){const h=+$('ho').value||0,r=rate(),a=auxOn()?(+S.aux||0):0;$('auxV').textContent='+ '+money(S.aux);
+  $('calcTxt').textContent=`${h.toLocaleString('es-CO')} h × ${money(r)}`+(a?` + auxilio ${money(a)}`:'');$('calc').textContent=money(h*r+a)}
+$('ca').onchange=()=>{$('otroW').classList.toggle('hide',$('ca').value!=='otro');calc()};
+['ho','ov'].forEach(i=>$(i).addEventListener('input',calc));
+function today(){const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)}
+const fd=d=>new Date(d+'T12:00').toLocaleDateString('es-CO',{day:'numeric',month:'short',year:d.slice(0,4)===today().slice(0,4)?undefined:'numeric'});
+$('ve').innerHTML=Object.entries(VENUES).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join('');
+function fillEvents(pick){const v=$('ve').value,man=v==='otro';
+  const evs=CAT.filter(e=>e.v===v).sort((a,b)=>a.d.localeCompare(b.d));
+  $('es').innerHTML=evs.map(e=>`<option value="${e.id}">${esc(fd(e.d))} · ${esc(e.n)}</option>`).join('')+'<option value="man">✎ Escribir otro evento</option>';
+  if(pick)$('es').value=pick;else{const t=today(),past=evs.filter(e=>e.d<=t);$('es').value=(past.length?past[past.length-1]:evs[0]||{id:'man'}).id}
+  $('esW').classList.toggle('hide',man);syncEv(!pick)}
+function syncEv(setDate){const man=$('ve').value==='otro'||$('es').value==='man';$('evW').classList.toggle('hide',!man);
+  const e=CAT.find(x=>x.id===$('es').value);if(e&&!man&&setDate)$('fe').value=e.d}
+$('ve').onchange=()=>fillEvents();$('es').onchange=()=>syncEv(true);
+function curEvent(){const v=$('ve').value,man=v==='otro'||$('es').value==='man';const e=CAT.find(x=>x.id===$('es').value);
+  return {evento:man?$('ev').value.trim():e.n,lugar:v==='otro'?'':VENUES[v],lugarK:v}}
+const TIPOS={evento:'Evento',montaje:'Montaje',desmontaje:'Desmontaje'};
+let tipo='evento';
+function setTipo(t){tipo=TIPOS[t]?t:'evento';$('tipo').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===tipo))}
+$('tipo').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(b)setTipo(b.dataset.t)});
+function resetForm(){editing=null;fillCargos();$('fTitle').textContent='Añadir turno';$('sv').textContent='Añadir';$('cx').classList.add('hide');
+  $('ev').value='';$('ho').value='';$('on').value='';$('ov').value='';$('fe').value=today();$('ferr').textContent='';setAux(false);setTipo('evento');
+  $('ca').value=$('ca').value||'acreditador';$('ca').onchange();fillEvents()}
+$('cx').onclick=resetForm;
+
+$('fRec').addEventListener('submit',e=>{
+  e.preventDefault();const err=$('ferr');err.textContent='';
+  const ce=curEvent(),ev=ce.evento,h=+$('ho').value,c=$('ca').value,r=rate();
+  if(!ev){err.textContent='Escribe el nombre del evento.';return}
+  if(!(h>0)){err.textContent='Las horas deben ser mayores que 0.';return}
+  if(c==='otro'&&!(r>0)){err.textContent='Ingresa el valor por hora del cargo.';return}
+  const rec={id:editing||(Date.now().toString(36)+Math.random().toString(36).slice(2,6)),evento:ev,tipo,lugar:ce.lugar,lugarK:ce.lugarK,fecha:$('fe').value||today(),
+    cargo:c,cargoNombre:c==='otro'?($('on').value.trim()||'Otro'):NAMES[c],tarifa:r,horas:h,aux:auxOn()?(+S.aux||0):0};rec.total=Math.round(h*r)+rec.aux;
+  if(editing){const i=S.records.findIndex(x=>x.id===editing);if(i>=0)S.records[i]=rec}else S.records.push(rec);
+  const keep=editing?null:{v:$('ve').value,e:$('es').value,t:$('ev').value,f:$('fe').value,tp:tipo};resetForm();if(keep){setTipo(keep.tp);$('ve').value=keep.v;fillEvents(keep.e);$('ev').value=keep.t;$('fe').value=keep.f}
+  save();render(true);
+});
+
+// rates
+function renderRates(){
+  $('rates').innerHTML=Object.keys(DEF_RATES).map(k=>`<div class="r"><label for="rt_${k}" style="margin:0">${NAMES[k]}</label><input id="rt_${k}" data-k="${k}" type="number" inputmode="numeric" min="0" step="100" value="${+S.rates[k]}"></div>`).join('')+`<div class="r"><label for="rt_aux" style="margin:0">Auxilio de transporte (por turno)</label><input id="rt_aux" data-k="aux" type="number" inputmode="numeric" min="0" step="100" value="${+S.aux}"></div>`;
+  $('rates').querySelectorAll('input').forEach(i=>i.addEventListener('change',()=>{const v=+i.value;if(v>=0){if(i.dataset.k==='aux')S.aux=v;else S.rates[i.dataset.k]=v;fillCargos();calc();save()}}));
+}
+
+// list
+$('q').addEventListener('input',()=>render());$('mo').addEventListener('change',()=>render());
+function monthLabel(m){const [y,mm]=m.split('-');return new Date(+y,+mm-1,1).toLocaleDateString('es-CO',{month:'long',year:'numeric'})}
+function render(pop){
+  const months=[...new Set(S.records.map(r=>(r.fecha||'').slice(0,7)).filter(Boolean))].sort().reverse();
+  const cur=$('mo').value;
+  $('mo').innerHTML='<option value="">Todos</option>'+months.map(m=>`<option value="${esc(m)}">${esc(monthLabel(m))}</option>`).join('');
+  if(months.includes(cur))$('mo').value=cur;
+  $('evList').innerHTML=[...new Set(S.records.map(r=>r.evento))].map(v=>`<option value="${esc(v)}">`).join('');
+  const q=$('q').value.trim().toLowerCase(),mo=$('mo').value;
+  const rs=S.records.filter(r=>(!q||(r.evento+' '+(r.lugar||'')+' '+(TIPOS[r.tipo]||'')).toLowerCase().includes(q))&&(!mo||(r.fecha||'').startsWith(mo)))
+    .sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')||b.id.localeCompare(a.id));
+  const tot=rs.reduce((s,r)=>s+r.total,0),hrs=rs.reduce((s,r)=>s+r.horas,0);
+  $('tot').textContent=money(tot);$('totH').textContent=hrs.toLocaleString('es-CO')+(hrs===1?' hora':' horas');
+  $('totN').textContent=rs.length+(rs.length===1?' turno':' turnos');
+  $('credLbl').textContent=(q||mo)?'Total a cobrar (filtrado)':'Total a cobrar';
+  if(pop){const b=$('tot');b.classList.add('pop');setTimeout(()=>b.classList.remove('pop'),200)}
+  const by={};let auxT=0;rs.forEach(r=>{const a=+r.aux||0;auxT+=a;by[r.cargoNombre]=(by[r.cargoNombre]||0)+r.total-a});if(auxT)by['Auxilio de transporte']=auxT;const tp={};rs.forEach(r=>{const k=TIPOS[r.tipo]||'Evento';tp[k]=(tp[k]||0)+r.horas});
+  $('sum').innerHTML=Object.keys(by).length>1?Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div><span>${esc(k)}</span><span>${money(v)}</span></div>`).join(''):'';
+  if(Object.keys(tp).length>1)$('sum').innerHTML+=`<div><span>Horas por tipo</span><span>${Object.entries(tp).map(([k,v])=>esc(k)+' '+v.toLocaleString('es-CO')+' h').join(' · ')}</span></div>`;
+  if(!rs.length){$('list').innerHTML=`<li class="empty">${S.records.length?'Ningún turno coincide con el filtro.':'Aún no tienes turnos. Añade el primero con el formulario.'}</li>`;return}
+  $('list').innerHTML=rs.map(r=>{
+    const d=r.fecha?new Date(r.fecha+'T12:00').toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'}):'';
+    return `<li class="item"><div class="ev">${esc(r.evento)}</div><div class="amt">${money(r.total)}</div>
+    <div class="meta">${r.lugar?esc(r.lugar.replace(/ \(antiguo.*\)/,''))+' · ':''}${esc(d)} · ${r.tipo&&r.tipo!=='evento'?`<span class="chip t-${r.tipo}">${TIPOS[r.tipo]}</span> `:''}<span class="chip">${esc(r.cargoNombre)}</span> · ${(+r.horas).toLocaleString('es-CO')} h × ${money(r.tarifa)}${r.aux?' + auxilio '+money(r.aux):''}</div><div></div>
+    <div class="ops"><button class="link" data-ed="${esc(r.id)}">Editar</button><button class="link" data-del="${esc(r.id)}">Eliminar</button></div></li>`}).join('');
+}
+$('list').addEventListener('click',e=>{
+  const ed=e.target.closest('[data-ed]'),dl=e.target.closest('[data-del]');
+  if(ed){const r=S.records.find(x=>x.id===ed.dataset.ed);if(!r)return;editing=r.id;fillCargos();
+    {const k=r.lugarK&&VENUES[r.lugarK]?r.lugarK:'otro',m=CAT.find(e=>e.v===k&&e.n===r.evento&&e.d===r.fecha);
+     $('ve').value=k;fillEvents(m?m.id:'man');$('ev').value=r.evento}$('fe').value=r.fecha;$('ho').value=r.horas;$('ca').value=r.cargo;
+    if(r.cargo==='otro'){$('on').value=r.cargoNombre;$('ov').value=r.tarifa}
+    else if(r.tarifa!==S.rates[r.cargo]){$('ca').value='otro';$('on').value=r.cargoNombre;$('ov').value=r.tarifa}
+    $('ca').onchange();setAux(!!r.aux);setTipo(r.tipo||'evento');$('fTitle').textContent='Editar turno';$('sv').textContent='Guardar cambios';$('cx').classList.remove('hide');
+    $('fRec').scrollIntoView({behavior:'smooth',block:'start'});$('ve').focus({preventScroll:true})}
+  if(dl){const i=S.records.findIndex(x=>x.id===dl.dataset.del);if(i<0)return;
+    lastDel={rec:S.records[i],i};S.records.splice(i,1);if(editing===lastDel.rec.id)resetForm();save();render(true);
+    $('toastTxt').textContent='Turno eliminado';$('toastBtn').classList.remove('hide');$('toast').classList.remove('hide');clearTimeout(toastT);
+    toastT=setTimeout(()=>$('toast').classList.add('hide'),6000)}
+});
+function toast(t){$('toastTxt').textContent=t;$('toastBtn').classList.add('hide');$('toast').classList.remove('hide');clearTimeout(toastT);toastT=setTimeout(()=>$('toast').classList.add('hide'),7000)}
+$('toastBtn').onclick=()=>{if(lastDel){S.records.splice(lastDel.i,0,lastDel.rec);lastDel=null;save();render(true)}$('toast').classList.add('hide')};
+}
+</script>
+</body>
+</html>
