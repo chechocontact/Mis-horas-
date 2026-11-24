@@ -1,6 +1,6 @@
-# Mis horas de eventos
+# Mis Horass
 
-App web para registrar turnos de trabajo en eventos (evento, lugar, tipo de turno, cargo, horas y auxilio de transporte) y calcular el pago.
+App web instalable (PWA) para registrar turnos de trabajo en eventos (evento, lugar, tipo de turno, cargo, horas y auxilio de transporte) y calcular el pago.
 Usa **Firebase Authentication** para las cuentas y **Cloud Firestore** para guardar los turnos. Se publica en **Netlify** desde GitHub.
 
 ## Archivos
@@ -11,6 +11,9 @@ Usa **Firebase Authentication** para las cuentas y **Cloud Firestore** para guar
 | `firebase-config.js` | Tus datos de conexión a Firebase (tienes que pegarlos) |
 | `firestore.rules` | Reglas de seguridad: cada usuario solo ve sus turnos |
 | `netlify.toml` | Configuración de publicación en Netlify |
+| `manifest.webmanifest` | Nombre, ícono y colores de la app instalada |
+| `sw.js` | Service worker: deja abrir la app sin señal (nunca toca los datos) |
+| `icons/` | Logo e íconos de la app |
 
 ## Paso 1 · Crear el proyecto en Firebase (gratis, sin tarjeta)
 
@@ -25,7 +28,7 @@ Usa **Firebase Authentication** para las cuentas y **Cloud Firestore** para guar
 ## Paso 2 · Subir a GitHub
 
 1. Crea un repositorio nuevo en https://github.com/new (puede ser privado).
-2. Sube los 5 archivos de esta carpeta: en el repositorio, **Add file → Upload files**, arrástralos y pulsa **Commit changes**.
+2. Sube **todo el contenido** de esta carpeta (archivos y la carpeta `icons`): en el repositorio, **Add file → Upload files**, arrástralos y pulsa **Commit changes**.
    (O por terminal: `git init`, `git add .`, `git commit -m "Primera versión"`, `git remote add origin ...`, `git push -u origin main`.)
 
 ## Paso 3 · Publicar en Netlify
@@ -42,16 +45,27 @@ Usa **Firebase Authentication** para las cuentas y **Cloud Firestore** para guar
 3. Añade un turno y recarga la página: debe seguir ahí. Entra desde otro teléfono con el mismo correo y verás los mismos turnos.
 4. Si olvidas la contraseña, escribe tu correo y pulsa **¿Olvidaste tu contraseña?**: llega un enlace para crear una nueva.
 
+## Instalar la app en el celular
+
+- **Android (Chrome):** abre la dirección de Netlify y toca **Instalar** en el aviso de la app, o en el menú ⋮ → **Instalar app**.
+- **iPhone (Safari):** toca **Compartir** → **Añadir a pantalla de inicio**.
+- La app instalada abre a pantalla completa con el logo de Mis Horass. En iPhone hay que iniciar sesión una vez dentro de la app instalada.
+- Cada cambio que publiques en GitHub llega solo a la app instalada la próxima vez que se abra con internet.
+
 ## Cómo se guardan los datos
 
-- Cada usuario tiene un documento `usuarios/{uid}` en Firestore con su lista de turnos.
+- Cada turno es un documento propio en Firestore: `usuarios/{uid}/turnos/{id}`. Guardar o editar un turno nunca puede borrar otro, aunque la app esté abierta en varios dispositivos a la vez.
+- Los dispositivos se sincronizan en vivo: lo que se añade en el celular aparece en el computador sin recargar.
+- Arriba, bajo el correo, la app muestra **«Guardado en la nube ✓»** cuando el último cambio ya está en Firebase. Si dice «Sin señal…», el cambio está guardado en el teléfono y se sube solo al volver la conexión.
+- Las cuentas creadas con versiones anteriores tenían todos los turnos en una sola lista (`usuarios/{uid}.records`). Al entrar, la app los copia uno por uno al nuevo formato y deja la lista original en el campo `respaldo`.
 - Las tarifas por cargo (Acreditador 7.500, Validador 7.500, Runner 8.500, Coordinador 9.500) y el auxilio de transporte (10.000) son fijos y están en `index.html` (`DEF_RATES` y `aux:10000`). Los usuarios no pueden cambiarlos; solo el cargo «Otro» permite escribir un valor por hora.
-- Las reglas de `firestore.rules` impiden que alguien lea o modifique el documento de otra persona.
+- Las reglas de `firestore.rules` impiden que alguien lea o modifique los turnos de otra persona. **Si actualizas desde una versión anterior, vuelve a pegar y publicar las reglas** (Firestore → Reglas): sin ellas los turnos no se pueden guardar.
 - Las cuentas son solo con correo y contraseña. Al registrarse, Firebase envía un correo de confirmación al correo indicado (el registro no se bloquea si no lo abren).
 - Las contraseñas las guarda Firebase Authentication de forma segura; la app nunca las almacena.
 - Los turnos también se guardan en el teléfono: si no hay señal en el evento, se sincronizan solos cuando vuelva.
 - La sesión queda abierta en el dispositivo hasta pulsar **Cerrar sesión**.
-- Para ver o respaldar los datos: Consola de Firebase → Firestore Database → colección `usuarios`.
+- El service worker (`sw.js`) solo guarda copias de los archivos de la app para que abra sin señal. Las llamadas de inicio de sesión y de guardado van siempre directo a Firebase.
+- Para ver o respaldar los datos: Consola de Firebase → Firestore Database → colección `usuarios` → cada usuario → `turnos`.
 
 ## Actualizar la agenda de eventos
 

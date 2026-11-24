@@ -2,8 +2,18 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mis horas de eventos</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mis Horass</title>
+<meta name="description" content="Registra tus turnos en eventos y calcula al instante cuánto te deben pagar.">
+<script>try{if(matchMedia('(display-mode: standalone)').matches||navigator.standalone===true)document.documentElement.classList.add('standalone')}catch(e){}</script>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#ff5a1f">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mis Horass">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -98,8 +108,27 @@ details summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;alig
 input:disabled{opacity:1;background:var(--card);color:var(--ink);-webkit-text-fill-color:var(--ink)}
 /* Oculta solo la insignia «Powered by Netlify» (plan gratuito). No afecta nada más. */
 #nl-badge-frame{display:none!important}
+.badge .lg{display:block;width:64px;height:64px;margin:14px 0 4px;border-radius:14px;box-shadow:0 6px 16px rgba(0,0,0,.25)}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}.brand img{width:40px;height:40px;border-radius:10px;flex:none}.brand>div{min-width:0;overflow:hidden}
+.brand h1{font-size:clamp(24px,5vw,34px)}
+.inst{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;margin-top:12px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);font-size:15px}
+.instB{display:flex;gap:6px;align-items:center}.inst .pri{min-height:40px}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.gcard{display:flex;gap:14px;align-items:flex-start;margin-top:22px;padding:16px;border-radius:16px;background:var(--card);border:1px solid var(--line)}
+.gcard img{width:48px;height:48px;border-radius:12px;flex:none}.gcard p{margin:4px 0 10px;font-size:15px;color:var(--mut)}
+.gbtns{display:flex;gap:8px;flex-wrap:wrap}.gbtns button{min-height:42px}
+.sheetBg{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:min(560px,100%);max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:18px 20px calc(24px + env(safe-area-inset-bottom))}
+@media(min-width:700px){.sheetBg{align-items:center}.sheet{border-radius:20px}}
+.sheetTop{display:flex;justify-content:space-between;align-items:center;gap:10px}.sheetTop h2{margin:0}
+.seg.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.steps{margin:14px 0 10px;padding:0;list-style:none;counter-reset:s}
+.steps li{counter-increment:s;position:relative;padding:0 0 14px 42px;line-height:1.5}
+.steps li::before{content:counter(s);position:absolute;left:0;top:-2px;width:28px;height:28px;border-radius:50%;background:var(--acc);color:var(--accInk);font-weight:700;display:grid;place-items:center;font-size:14px}
+.ic{width:20px;height:20px;vertical-align:-4px;display:inline-block;color:var(--acc)}
+html.standalone .web-only{display:none!important}
 .hide{display:none!important}
-.status{font-size:13px;color:var(--mut)}
+.status{font-size:13px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(prefers-reduced-motion:no-preference){.cred .big{transition:transform .2s}.cred .big.pop{transform:scale(1.04)}}
 @media(max-width:600px){.row2{grid-template-columns:minmax(0,1fr)}.rates .r{grid-template-columns:minmax(0,1fr) 120px}}
 </style>
@@ -109,7 +138,8 @@ input:disabled{opacity:1;background:var(--card);color:var(--ink);-webkit-text-fi
 <div id="vLogin" class="wrap">
   <div class="login">
     <div class="badge">
-      <h1>Mis horas de eventos</h1>
+      <img src="/icons/logo.png" alt="" width="64" height="64" class="lg">
+      <h1>Mis Horass</h1>
       <p style="margin:8px 0 0">Registra evento, cargo y horas. El pago se calcula solo.</p>
     </div>
     <div class="tabs" role="tablist">
@@ -126,12 +156,17 @@ input:disabled{opacity:1;background:var(--card);color:var(--ink);-webkit-text-fi
       <p style="margin:6px 0 0"><button type="button" class="link" id="forgot">¿Olvidaste tu contraseña?</button></p>
       <p class="mut">Tus turnos se guardan en tu cuenta y solo tú puedes verlos. Al crear la cuenta te llegará un correo de confirmación.</p>
     </form>
+    <div class="gcard web-only">
+      <img src="/icons/logo.png" alt="" width="48" height="48">
+      <div><b>Úsala como app en tu celular</b><p>Instálala en tu pantalla de inicio: abre a pantalla completa, sin barra del navegador.</p>
+      <div class="gbtns"><button type="button" class="pri hide" data-install>Instalar ahora</button><button type="button" data-guide>Ver cómo instalarla</button></div></div>
+    </div>
   </div>
 </div>
 
 <div id="vApp" class="wrap hide">
   <div class="top">
-    <div><h1>Mis horas</h1><div class="mut">Hola, <span id="who"></span> · <span class="status" id="st">Guardado</span></div></div>
+    <div class="brand"><img src="/icons/logo.png" alt="" width="40" height="40"><div><h1>Mis Horass</h1><div class="mut"><span id="who"></span></div><div class="status" id="st">Cargando…</div></div></div>
     <button id="out">Cerrar sesión</button>
   </div>
   <nav class="nav" aria-label="Secciones">
@@ -139,6 +174,7 @@ input:disabled{opacity:1;background:var(--card);color:var(--ink);-webkit-text-fi
     <button type="button" id="nList" data-go="turnos">Mis turnos <span class="cnt hide" id="nBadge"></span></button>
   </nav>
   <section class="sec" id="secAdd">
+      <div class="inst web-only hide" id="inst"><span>Estás usando Mis Horass en el navegador. Instálala como app en tu celular.</span><span class="instB"><button type="button" class="pri hide" data-install>Instalar</button><button type="button" data-guide>Cómo instalar</button><button type="button" class="link" id="instX">Ahora no</button></span></div>
       <form class="panel" id="fRec">
         <h2 id="fTitle">Añadir turno</h2>
         <div class="field"><label for="ve">Lugar</label><select id="ve"></select></div>
@@ -179,13 +215,39 @@ input:disabled{opacity:1;background:var(--card);color:var(--ink);-webkit-text-fi
       </div>
   </section>
 </div>
+<div class="sheetBg hide" id="gSheet" role="dialog" aria-modal="true" aria-labelledby="gTitle">
+  <div class="sheet">
+    <div class="sheetTop"><h2 id="gTitle">Instalar Mis Horass</h2><button type="button" class="link" id="gClose">Cerrar</button></div>
+    <p class="mut" style="margin:0 0 12px">Así queda en tu pantalla de inicio con el logo y abre como una app, sin barra del navegador. Tus turnos son los mismos.</p>
+    <div class="seg two" role="tablist"><button type="button" data-os="android" aria-pressed="true">Android</button><button type="button" data-os="ios" aria-pressed="false">iPhone / iPad</button></div>
+    <div data-steps="android">
+      <button type="button" class="pri hide" data-install style="width:100%;margin:14px 0 4px">Instalar ahora</button>
+      <ol class="steps">
+        <li>Abre esta página en <b>Google Chrome</b>.</li>
+        <li>Toca el menú <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="19" r="2" fill="currentColor"/></svg> arriba a la derecha.</li>
+        <li>Elige <b>Instalar app</b> (o <b>Añadir a pantalla de inicio</b>).</li>
+        <li>Confirma con <b>Instalar</b>. El ícono de Mis Horass aparece en tu pantalla de inicio.</li>
+      </ol>
+      <p class="mut">En <b>Samsung Internet</b>: menú ☰ abajo a la derecha → <b>Añadir página a</b> → <b>Pantalla de inicio</b>.</p>
+    </div>
+    <div data-steps="ios" class="hide">
+      <ol class="steps">
+        <li>Abre esta página en <b>Safari</b>.</li>
+        <li>Toca el botón <b>Compartir</b> <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 10H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1h-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> (en la barra de abajo; en iPad, arriba). En las versiones más nuevas de iOS puede estar dentro del botón <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg>.</li>
+        <li>Desliza hacia abajo y toca <b>Añadir a pantalla de inicio</b> <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>. Si no aparece, toca <b>Editar acciones</b> y actívalo.</li>
+        <li>Toca <b>Añadir</b>. Luego abre Mis Horass desde el ícono e inicia sesión una vez.</li>
+      </ol>
+      <p class="mut">En <b>Chrome para iPhone</b>: botón Compartir <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 10H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1h-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> arriba a la derecha → <b>Añadir a pantalla de inicio</b>.</p>
+    </div>
+  </div>
+</div>
 <div class="toast hide" id="toast" role="status"><span id="toastTxt"></span><button id="toastBtn">Deshacer</button></div>
 
 <script type="module">
 import {firebaseConfig} from './firebase-config.js';
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,sendPasswordResetEmail,sendEmailVerification,setPersistence,browserLocalPersistence,browserSessionPersistence} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import {initializeFirestore,getFirestore,persistentLocalCache,doc,getDoc,setDoc} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import {initializeFirestore,getFirestore,persistentLocalCache,doc,getDoc,setDoc,deleteDoc,collection,onSnapshot,writeBatch} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 {
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -224,13 +286,24 @@ else{
   $('lgo').disabled=true;$('lgo').textContent='Cargando…';
   onAuthStateChanged(auth,async u=>{
     $('lgo').disabled=false;setMode(mode);
-    if(!u){ref=null;user='';S={records:[],rates:{...DEF_RATES},aux:10000};$('vApp').classList.add('hide');$('vLogin').classList.remove('hide');return}
-    ref=doc(db,'usuarios',u.uid);user=u.email||'';
+    if(unsub){unsub();unsub=null}
+    if(!u){ref=null;col=null;user='';S={records:[],rates:{...DEF_RATES},aux:10000};$('vApp').classList.add('hide');$('vLogin').classList.remove('hide');return}
+    ref=doc(db,'usuarios',u.uid);col=collection(db,'usuarios',u.uid,'turnos');user=u.email||'';
+    S={records:[],rates:{...DEF_RATES},aux:10000};loaded=false;
+    // Migración: versiones anteriores guardaban todos los turnos en una sola lista dentro de usuarios/{uid}.
+    // Se copian uno por uno a usuarios/{uid}/turnos y la lista original queda como respaldo.
     try{const snap=await getDoc(ref);const o=snap.exists()?snap.data():{};
-      S={records:Array.isArray(o.records)?o.records:[],rates:{...DEF_RATES},aux:10000}}
+      if(Array.isArray(o.records)&&o.records.length){const old=o.records.filter(x=>x&&x.id);
+        for(let i=0;i<old.length;i+=400){const b=writeBatch(db);old.slice(i,i+400).forEach(x=>b.set(doc(col,String(x.id)),x,{merge:true}));await b.commit()}
+        await setDoc(ref,{records:[],respaldo:o.records,migrado:Date.now()},{merge:true})}}
     catch(ex){$('lerr').textContent='No se pudieron cargar tus turnos: '+msg(ex);await signOut(auth);return}
     try{if(localStorage.getItem('horas_rem')!=='0')localStorage.setItem('horas_user',user)}catch(e){}
     enterApp();
+    // Sincronización en vivo: lo que se guarde en otro dispositivo aparece aquí sin recargar.
+    unsub=onSnapshot(col,{includeMetadataChanges:true},q=>{
+      loaded=true;S.records=q.docs.map(d=>({...d.data(),id:d.id}));render();
+      if(!inflight)$('st').textContent=q.metadata.hasPendingWrites?'Sin señal: guardado en el teléfono, se sincroniza solo':'Guardado en la nube ✓';
+    },ex=>{$('st').textContent='No se pudo sincronizar: '+msg(ex)});
   });
 }
 
@@ -257,14 +330,20 @@ $('forgot').onclick=async()=>{const err=$('lerr'),u=$('lu').value.trim().toLower
   try{await sendPasswordResetEmail(auth,u);err.textContent='Si el correo está registrado, te llegó un enlace para crear una nueva contraseña.'}catch(ex){err.textContent=msg(ex)}};
 
 // saving: each change is written (Firestore keeps it on the device and syncs when there is signal)
-let inflight=0;
-async function save(){
-  if(!ref)return;inflight++;$('st').textContent='Guardando…';
+// Cada turno es un documento propio (usuarios/{uid}/turnos/{id}): guardar uno nunca puede borrar otro.
+let inflight=0,unsub=null,col=null,loaded=false;
+async function write(fn){
+  if(!col)return;inflight++;$('st').textContent='Guardando…';
   const slow=setTimeout(()=>{if(inflight)$('st').textContent='Sin señal: guardado en el teléfono, se sincroniza solo'},4000);
-  try{await setDoc(ref,{records:S.records,updated:Date.now()});if(inflight===1)$('st').textContent='Guardado'}
-  catch(ex){$('st').textContent='No se guardó: '+msg(ex)}
+  try{await fn();if(inflight===1)$('st').textContent='Guardado en la nube ✓'}
+  catch(ex){$('st').textContent='No se guardó: '+msg(ex);toast('No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.')}
   finally{inflight--;clearTimeout(slow)}
 }
+const clean=o=>JSON.parse(JSON.stringify(o));
+const saveRec=rec=>write(()=>setDoc(doc(col,rec.id),clean(rec)));
+const delRec=id=>write(()=>deleteDoc(doc(col,id)));
+const saveMany=recs=>write(async()=>{for(let i=0;i<recs.length;i+=400){const b=writeBatch(db);recs.slice(i,i+400).forEach(x=>b.set(doc(col,x.id),clean(x)));await b.commit()}});
+window.addEventListener('beforeunload',e=>{if(inflight){e.preventDefault();e.returnValue=''}});
 
 function go(t,noHash){const add=t!=='turnos';$('secAdd').classList.toggle('hide',!add);$('secList').classList.toggle('hide',add);
   $('nAdd').setAttribute('aria-current',add?'page':'false');$('nList').setAttribute('aria-current',add?'false':'page');
@@ -332,7 +411,7 @@ $('fRec').addEventListener('submit',e=>{
     cargo:c,cargoNombre:c==='otro'?($('on').value.trim()||'Otro'):NAMES[c],tarifa:r,minutos:mins,horas:Math.round(h*10000)/10000,aux:auxOn()?(+S.aux||0):0};rec.total=Math.round(mins*r/60)+rec.aux;
   if(editing){const i=S.records.findIndex(x=>x.id===editing);if(i>=0){if(S.records[i].pagado){rec.pagado=true;rec.pagadoEl=S.records[i].pagadoEl}S.records[i]=rec}}else S.records.push(rec);
   const wasEditing=!!editing;const keep=editing?null:{v:$('ve').value,e:$('es').value,t:$('ev').value,f:$('fe').value,tp:tipo};resetForm();if(keep){setTipo(keep.tp);$('ve').value=keep.v;fillEvents(keep.e);$('ev').value=keep.t;$('fe').value=keep.f}
-  save();render(true);
+  saveRec(rec);render(true);
   if(wasEditing)go('turnos');else toast('Turno añadido: '+money(rec.total),'Ver mis turnos',()=>go('turnos'));
 });
 
@@ -359,7 +438,7 @@ function render(pop){
   $('sum').innerHTML=Object.keys(by).length>1?Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div><span>${esc(k)}</span><span>${money(v)}</span></div>`).join(''):'';
   if(Object.keys(tp).length>1)$('sum').innerHTML+=`<div><span>Horas por tipo</span><span>${Object.entries(tp).map(([k,v])=>esc(k)+' '+fmtHM(v)).join(' · ')}</span></div>`;
   bulkArm=false;$('sum').insertAdjacentHTML('beforeend',pend.length>1?`<button type="button" class="bulk" id="bulk">Marcar ${pend.length} turnos como pagados (${money(tot)})</button>`:'');
-  if(!rs.length){$('list').innerHTML=`<li class="empty">${S.records.length?'Ningún turno coincide con el filtro.':'Aún no tienes turnos. Añade el primero con el formulario.'}</li>`;return}
+  if(!rs.length){$('list').innerHTML=`<li class="empty">${!loaded?'Cargando tus turnos…':S.records.length?'Ningún turno coincide con el filtro.':'Aún no tienes turnos. Añade el primero en «Añadir turno».'}</li>`;return}
   $('list').innerHTML=rs.map(r=>{
     const d=r.fecha?new Date(r.fecha+'T12:00').toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'}):'';
     return `<li class="item${r.pagado?' paid':''}"><div class="ev">${esc(r.evento)}</div><div class="amt">${money(r.total)}</div>
@@ -368,7 +447,7 @@ function render(pop){
 }
 $('list').addEventListener('click',e=>{
   const ed=e.target.closest('[data-ed]'),dl=e.target.closest('[data-del]'),py=e.target.closest('[data-pay]');
-  if(py){const r=S.records.find(x=>x.id===py.dataset.pay);if(!r)return;r.pagado=!r.pagado;if(r.pagado)r.pagadoEl=today();else delete r.pagadoEl;save();render(true);return}
+  if(py){const r=S.records.find(x=>x.id===py.dataset.pay);if(!r)return;r.pagado=!r.pagado;if(r.pagado)r.pagadoEl=today();else delete r.pagadoEl;saveRec(r);render(true);return}
   if(ed){const r=S.records.find(x=>x.id===ed.dataset.ed);if(!r)return;editing=r.id;fillCargos();
     {const k=r.lugarK&&VENUES[r.lugarK]?r.lugarK:'otro',m=CAT.find(e=>e.v===k&&e.n===r.evento&&e.d===r.fecha);
      $('ve').value=k;fillEvents(m?m.id:'man');$('ev').value=r.evento}$('fe').value=r.fecha;$('ho').value=minText(recMin(r));$('ca').value=r.cargo;
@@ -377,19 +456,48 @@ $('list').addEventListener('click',e=>{
     $('ca').onchange();setAux(!!r.aux);setTipo(r.tipo||'evento');$('fTitle').textContent='Editar turno';$('sv').textContent='Guardar cambios';$('cx').classList.remove('hide');
     go('anadir');$('ve').focus({preventScroll:true})}
   if(dl){const i=S.records.findIndex(x=>x.id===dl.dataset.del);if(i<0)return;
-    lastDel={rec:S.records[i],i};S.records.splice(i,1);if(editing===lastDel.rec.id)resetForm();save();render(true);
-    toast('Turno eliminado','Deshacer',()=>{if(lastDel){S.records.splice(lastDel.i,0,lastDel.rec);lastDel=null;save();render(true)}})}
+    lastDel={rec:S.records[i],i};S.records.splice(i,1);if(editing===lastDel.rec.id)resetForm();delRec(lastDel.rec.id);render(true);
+    toast('Turno eliminado','Deshacer',()=>{if(lastDel){S.records.splice(lastDel.i,0,lastDel.rec);saveRec(lastDel.rec);lastDel=null;render(true)}})}
 });
 let bulkArm=false;
 $('sum').addEventListener('click',e=>{const b=e.target.closest('#bulk');if(!b)return;
   if(!bulkArm){bulkArm=true;b.textContent='¿Seguro? Toca otra vez para confirmar';b.classList.add('pri');return}
   const ids=new Set([...$('list').querySelectorAll('[data-pay][aria-pressed=false]')].map(x=>x.dataset.pay));
-  S.records.forEach(r=>{if(ids.has(r.id)){r.pagado=true;r.pagadoEl=today()}});save();render(true);toast(ids.size+' turnos marcados como pagados')});
+  const ch=[];S.records.forEach(r=>{if(ids.has(r.id)){r.pagado=true;r.pagadoEl=today();ch.push(r)}});saveMany(ch);render(true);toast(ids.size+' turnos marcados como pagados')});
 let toastAct=null;
 function toast(t,label,fn){$('toastTxt').textContent=t;toastAct=fn||null;$('toastBtn').textContent=label||'';$('toastBtn').classList.toggle('hide',!fn);
   $('toast').classList.remove('hide');clearTimeout(toastT);toastT=setTimeout(()=>$('toast').classList.add('hide'),6000)}
 $('toastBtn').onclick=()=>{const f=toastAct;toastAct=null;$('toast').classList.add('hide');if(f)f()};
 }
+</script>
+<script>
+// Instalación como app (PWA). Nada de esto se muestra dentro de la app instalada.
+// No toca Firebase: el service worker nunca intercepta las llamadas de guardado.
+(function(){
+  var $=function(i){return document.getElementById(i)},all=function(q){return document.querySelectorAll(q)},deferred=null;
+  var standalone=document.documentElement.classList.contains('standalone');
+  var ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  var dismissed=false;try{dismissed=localStorage.getItem('horas_inst_x')==='1'}catch(e){}
+  if(!standalone&&!dismissed)$('inst').classList.remove('hide');
+  function setOS(os){all('[data-os]').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.os===os)});
+    all('[data-steps]').forEach(function(d){d.classList.toggle('hide',d.dataset.steps!==os)})}
+  setOS(ios?'ios':'android');
+  all('[data-os]').forEach(function(b){b.onclick=function(){setOS(b.dataset.os)}});
+  function open(){$('gSheet').classList.remove('hide');$('gClose').focus()}
+  function close(){$('gSheet').classList.add('hide')}
+  document.addEventListener('click',function(e){
+    if(e.target.closest('[data-guide]'))open();
+    if(e.target.closest('[data-install]')&&deferred){deferred.prompt();deferred.userChoice.finally(function(){deferred=null;all('[data-install]').forEach(function(b){b.classList.add('hide')})})}
+  });
+  $('gClose').onclick=close;$('gSheet').addEventListener('click',function(e){if(e.target===$('gSheet'))close()});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')close()});
+  window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferred=e;all('[data-install]').forEach(function(b){b.classList.remove('hide')})});
+  $('instX').onclick=function(){$('inst').classList.add('hide');try{localStorage.setItem('horas_inst_x','1')}catch(e){}};
+  window.addEventListener('appinstalled',function(){close();document.documentElement.classList.add('standalone')});
+  if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){
+    window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){})});
+  }
+})();
 </script>
 </body>
 </html>
