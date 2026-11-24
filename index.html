@@ -44,7 +44,7 @@ input,select{width:100%;min-height:46px;border:1px solid var(--line);border-radi
 .row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
 .err{color:var(--bad);font-size:14px;min-height:20px;margin:4px 0 0}
 /* login */
-.login{max-width:420px;margin:6vh auto 0}
+.login{max-width:420px;margin:3vh auto 0}
 .badge{background:var(--acc);color:var(--accInk);border-radius:18px;padding:28px 24px 24px;position:relative;margin-bottom:24px;box-shadow:0 14px 30px -14px rgba(255,90,31,.55)}
 .badge::before{content:"";position:absolute;top:12px;left:50%;width:56px;height:10px;margin-left:-28px;border-radius:6px;background:var(--bg)}
 .badge h1{margin-top:14px}
@@ -111,10 +111,10 @@ input:disabled{opacity:1;background:var(--card);color:var(--ink);-webkit-text-fi
 .badge .lg{display:block;width:64px;height:64px;margin:14px 0 4px;border-radius:14px;box-shadow:0 6px 16px rgba(0,0,0,.25)}
 .brand{display:flex;align-items:center;gap:10px;min-width:0}.brand img{width:40px;height:40px;border-radius:10px;flex:none}.brand>div{min-width:0;overflow:hidden}
 .brand h1{font-size:clamp(24px,5vw,34px)}
-.inst{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;margin-top:12px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);font-size:15px}
+.inst{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;margin:0 0 14px;background:var(--card);padding:12px 14px;border-radius:12px;border:1px solid var(--line);font-size:15px}
 .instB{display:flex;gap:6px;align-items:center}.inst .pri{min-height:40px}
 body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
-.gcard{display:flex;gap:14px;align-items:flex-start;margin-top:22px;padding:16px;border-radius:16px;background:var(--card);border:1px solid var(--line)}
+.gcard{display:flex;gap:14px;align-items:flex-start;margin:0 0 20px;padding:16px;border-radius:16px;background:var(--card);border:1px solid var(--line)}
 .gcard img{width:48px;height:48px;border-radius:12px;flex:none}.gcard p{margin:4px 0 10px;font-size:15px;color:var(--mut)}
 .gbtns{display:flex;gap:8px;flex-wrap:wrap}.gbtns button{min-height:42px}
 .sheetBg{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
@@ -137,6 +137,11 @@ html.standalone .web-only{display:none!important}
 
 <div id="vLogin" class="wrap">
   <div class="login">
+    <div class="gcard web-only">
+      <img src="/logo.png" alt="" width="48" height="48">
+      <div><b>Úsala como app en tu celular</b><p>Instálala en tu pantalla de inicio: abre a pantalla completa, sin barra del navegador.</p>
+      <div class="gbtns"><button type="button" class="pri hide" data-install>Instalar ahora</button><button type="button" data-guide>Ver cómo instalarla</button></div></div>
+    </div>
     <div class="badge">
       <img src="/logo.png" alt="" width="64" height="64" class="lg">
       <h1>Mis Horass</h1>
@@ -156,15 +161,11 @@ html.standalone .web-only{display:none!important}
       <p style="margin:6px 0 0"><button type="button" class="link" id="forgot">¿Olvidaste tu contraseña?</button></p>
       <p class="mut">Tus turnos se guardan en tu cuenta y solo tú puedes verlos. Al crear la cuenta te llegará un correo de confirmación.</p>
     </form>
-    <div class="gcard web-only">
-      <img src="/logo.png" alt="" width="48" height="48">
-      <div><b>Úsala como app en tu celular</b><p>Instálala en tu pantalla de inicio: abre a pantalla completa, sin barra del navegador.</p>
-      <div class="gbtns"><button type="button" class="pri hide" data-install>Instalar ahora</button><button type="button" data-guide>Ver cómo instalarla</button></div></div>
-    </div>
   </div>
 </div>
 
 <div id="vApp" class="wrap hide">
+  <div class="inst web-only hide" id="inst"><span>Estás usando Mis Horass en el navegador. Instálala como app en tu celular.</span><span class="instB"><button type="button" class="pri hide" data-install>Instalar</button><button type="button" data-guide>Cómo instalar</button><button type="button" class="link" id="instX">Ahora no</button></span></div>
   <div class="top">
     <div class="brand"><img src="/logo.png" alt="" width="40" height="40"><div><h1>Mis Horass</h1><div class="mut"><span id="who"></span></div><div class="status" id="st">Cargando…</div></div></div>
     <button id="out">Cerrar sesión</button>
@@ -174,7 +175,6 @@ html.standalone .web-only{display:none!important}
     <button type="button" id="nList" data-go="turnos">Mis turnos <span class="cnt hide" id="nBadge"></span></button>
   </nav>
   <section class="sec" id="secAdd">
-      <div class="inst web-only hide" id="inst"><span>Estás usando Mis Horass en el navegador. Instálala como app en tu celular.</span><span class="instB"><button type="button" class="pri hide" data-install>Instalar</button><button type="button" data-guide>Cómo instalar</button><button type="button" class="link" id="instX">Ahora no</button></span></div>
       <form class="panel" id="fRec">
         <h2 id="fTitle">Añadir turno</h2>
         <div class="field"><label for="ve">Lugar</label><select id="ve"></select></div>
