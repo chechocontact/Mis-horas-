@@ -157,11 +157,6 @@ details summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;alig
         <div class="acts"><button class="pri" id="sv">Añadir</button><button type="button" id="cx" class="hide">Cancelar</button></div>
         <p class="err" id="ferr"></p>
       </form>
-      <details class="panel">
-        <summary>Tarifas por hora</summary>
-        <div class="rates" id="rates"></div>
-        <p class="mut">Cambiar una tarifa afecta solo a los turnos nuevos.</p>
-      </details>
       <div class="mini"><span>Por cobrar: <b id="miniTot">$ 0</b></span><button type="button" class="link" data-go="turnos">Ver mis turnos</button></div>
   </section>
   <section class="sec hide" id="secList">
@@ -229,7 +224,7 @@ else{
     if(!u){ref=null;user='';S={records:[],rates:{...DEF_RATES},aux:10000};$('vApp').classList.add('hide');$('vLogin').classList.remove('hide');return}
     ref=doc(db,'usuarios',u.uid);user=u.email||'';
     try{const snap=await getDoc(ref);const o=snap.exists()?snap.data():{};
-      S={records:Array.isArray(o.records)?o.records:[],rates:{...DEF_RATES,...(o.rates||{})},aux:Number.isFinite(+o.aux)?+o.aux:10000}}
+      S={records:Array.isArray(o.records)?o.records:[],rates:{...DEF_RATES},aux:10000}}
     catch(ex){$('lerr').textContent='No se pudieron cargar tus turnos: '+msg(ex);await signOut(auth);return}
     try{if(localStorage.getItem('horas_rem')!=='0')localStorage.setItem('horas_user',user)}catch(e){}
     enterApp();
@@ -263,7 +258,7 @@ let inflight=0;
 async function save(){
   if(!ref)return;inflight++;$('st').textContent='Guardando…';
   const slow=setTimeout(()=>{if(inflight)$('st').textContent='Sin señal: guardado en el teléfono, se sincroniza solo'},4000);
-  try{await setDoc(ref,{records:S.records,rates:S.rates,aux:S.aux,updated:Date.now()});if(inflight===1)$('st').textContent='Guardado'}
+  try{await setDoc(ref,{records:S.records,updated:Date.now()});if(inflight===1)$('st').textContent='Guardado'}
   catch(ex){$('st').textContent='No se guardó: '+msg(ex)}
   finally{inflight--;clearTimeout(slow)}
 }
@@ -275,7 +270,7 @@ document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(!
 window.addEventListener('hashchange',()=>go(location.hash==='#turnos'?'turnos':'anadir',true));
 function enterApp(){
   $('vLogin').classList.add('hide');$('vApp').classList.remove('hide');$('who').textContent=user;
-  resetForm();renderRates();render();go(location.hash==='#turnos'?'turnos':'anadir');
+  resetForm();render();go(location.hash==='#turnos'?'turnos':'anadir');
 }
 $('out').onclick=()=>{if(auth)signOut(auth);setMode('in')};
 
@@ -336,11 +331,6 @@ $('fRec').addEventListener('submit',e=>{
   if(wasEditing)go('turnos');else toast('Turno añadido: '+money(rec.total),'Ver mis turnos',()=>go('turnos'));
 });
 
-// rates
-function renderRates(){
-  $('rates').innerHTML=Object.keys(DEF_RATES).map(k=>`<div class="r"><label for="rt_${k}" style="margin:0">${NAMES[k]}</label><input id="rt_${k}" data-k="${k}" type="number" inputmode="numeric" min="0" step="100" value="${+S.rates[k]}"></div>`).join('')+`<div class="r"><label for="rt_aux" style="margin:0">Auxilio de transporte (por turno)</label><input id="rt_aux" data-k="aux" type="number" inputmode="numeric" min="0" step="100" value="${+S.aux}"></div>`;
-  $('rates').querySelectorAll('input').forEach(i=>i.addEventListener('change',()=>{const v=+i.value;if(v>=0){if(i.dataset.k==='aux')S.aux=v;else S.rates[i.dataset.k]=v;fillCargos();calc();save()}}));
-}
 
 // list
 $('q').addEventListener('input',()=>render());$('pf').addEventListener('change',()=>render());$('mo').addEventListener('change',()=>render());

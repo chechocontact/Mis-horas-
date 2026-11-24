@@ -44,7 +44,8 @@ Usa **Firebase Authentication** para las cuentas y **Cloud Firestore** para guar
 
 ## Cómo se guardan los datos
 
-- Cada usuario tiene un documento `usuarios/{uid}` en Firestore con su lista de turnos, sus tarifas y el valor del auxilio.
+- Cada usuario tiene un documento `usuarios/{uid}` en Firestore con su lista de turnos.
+- Las tarifas por cargo (Acreditador 7.500, Validador 7.500, Runner 8.500, Coordinador 10.000) y el auxilio de transporte (10.000) son fijos y están en `index.html` (`DEF_RATES` y `aux:10000`). Los usuarios no pueden cambiarlos; solo el cargo «Otro» permite escribir un valor por hora.
 - Las reglas de `firestore.rules` impiden que alguien lea o modifique el documento de otra persona.
 - Las cuentas son solo con correo y contraseña. Al registrarse, Firebase envía un correo de confirmación al correo indicado (el registro no se bloquea si no lo abren).
 - Las contraseñas las guarda Firebase Authentication de forma segura; la app nunca las almacena.
