@@ -96,6 +96,8 @@ details summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;alig
 .remember{display:flex;align-items:center;gap:10px;min-height:44px;margin:-4px 0 10px;font-size:15px;font-weight:500;cursor:pointer}
 .remember input{width:22px;height:22px;min-height:0;margin:0;accent-color:var(--acc);flex:none}
 input:disabled{opacity:1;background:var(--card);color:var(--ink);-webkit-text-fill-color:var(--ink)}
+/* Oculta solo la insignia «Powered by Netlify» (plan gratuito). No afecta nada más. */
+#nl-badge-frame{display:none!important}
 .hide{display:none!important}
 .status{font-size:13px;color:var(--mut)}
 @media(prefers-reduced-motion:no-preference){.cred .big{transition:transform .2s}.cred .big.pop{transform:scale(1.04)}}
