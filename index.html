@@ -8,8 +8,8 @@
 <script>try{if(matchMedia('(display-mode: standalone)').matches||navigator.standalone===true)document.documentElement.classList.add('standalone')}catch(e){}</script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#ff5a1f">
-<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
-<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mis Horass">
@@ -138,7 +138,7 @@ html.standalone .web-only{display:none!important}
 <div id="vLogin" class="wrap">
   <div class="login">
     <div class="badge">
-      <img src="/icons/logo.png" alt="" width="64" height="64" class="lg">
+      <img src="/logo.png" alt="" width="64" height="64" class="lg">
       <h1>Mis Horass</h1>
       <p style="margin:8px 0 0">Registra evento, cargo y horas. El pago se calcula solo.</p>
     </div>
@@ -157,7 +157,7 @@ html.standalone .web-only{display:none!important}
       <p class="mut">Tus turnos se guardan en tu cuenta y solo tú puedes verlos. Al crear la cuenta te llegará un correo de confirmación.</p>
     </form>
     <div class="gcard web-only">
-      <img src="/icons/logo.png" alt="" width="48" height="48">
+      <img src="/logo.png" alt="" width="48" height="48">
       <div><b>Úsala como app en tu celular</b><p>Instálala en tu pantalla de inicio: abre a pantalla completa, sin barra del navegador.</p>
       <div class="gbtns"><button type="button" class="pri hide" data-install>Instalar ahora</button><button type="button" data-guide>Ver cómo instalarla</button></div></div>
     </div>
@@ -166,7 +166,7 @@ html.standalone .web-only{display:none!important}
 
 <div id="vApp" class="wrap hide">
   <div class="top">
-    <div class="brand"><img src="/icons/logo.png" alt="" width="40" height="40"><div><h1>Mis Horass</h1><div class="mut"><span id="who"></span></div><div class="status" id="st">Cargando…</div></div></div>
+    <div class="brand"><img src="/logo.png" alt="" width="40" height="40"><div><h1>Mis Horass</h1><div class="mut"><span id="who"></span></div><div class="status" id="st">Cargando…</div></div></div>
     <button id="out">Cerrar sesión</button>
   </div>
   <nav class="nav" aria-label="Secciones">
@@ -501,3 +501,4 @@ $('toastBtn').onclick=()=>{const f=toastAct;toastAct=null;$('toast').classList.a
 </script>
 </body>
 </html>
+<!--v2-->

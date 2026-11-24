@@ -2,9 +2,9 @@
 // Solo guarda copias de los archivos de la app (página, íconos, librerías) para que abra rápido y sin señal.
 // NUNCA intercepta las llamadas de inicio de sesión ni de guardado de turnos (Firebase): esas van
 // siempre directo a internet, así que este archivo no puede hacer que se pierdan datos.
-const VERSION = 'mishorass-v1';
+const VERSION = 'mishorass-v3';
 const SHELL = ['/index.html', '/firebase-config.js', '/manifest.webmanifest',
-  '/icons/icon-192.png', '/icons/icon-512.png', '/icons/logo.png', '/icons/favicon-32.png'];
+  '/icon-192.png', '/icon-512.png', '/logo.png', '/favicon-32.png', '/apple-touch-icon.png'];
 // Librerías externas que sí se pueden guardar: sus direcciones incluyen la versión y no cambian.
 const LIBS = [/^https:\/\/www\.gstatic\.com\/firebasejs\//, /^https:\/\/fonts\.googleapis\.com\//, /^https:\/\/fonts\.gstatic\.com\//];
 

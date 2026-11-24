@@ -13,7 +13,7 @@ Usa **Firebase Authentication** para las cuentas y **Cloud Firestore** para guar
 | `netlify.toml` | Configuración de publicación en Netlify |
 | `manifest.webmanifest` | Nombre, ícono y colores de la app instalada |
 | `sw.js` | Service worker: deja abrir la app sin señal (nunca toca los datos) |
-| `icons/` | Logo e íconos de la app |
+| `*.png` | Logo e íconos de la app (todos en la raíz, sin carpetas) |
 
 ## Paso 1 · Crear el proyecto en Firebase (gratis, sin tarjeta)
 
@@ -28,7 +28,7 @@ Usa **Firebase Authentication** para las cuentas y **Cloud Firestore** para guar
 ## Paso 2 · Subir a GitHub
 
 1. Crea un repositorio nuevo en https://github.com/new (puede ser privado).
-2. Sube **todo el contenido** de esta carpeta (archivos y la carpeta `icons`): en el repositorio, **Add file → Upload files**, arrástralos y pulsa **Commit changes**.
+2. Sube **todos los archivos** de esta carpeta (no hay subcarpetas, se pueden subir uno por uno desde el celular): en el repositorio, **Add file → Upload files**, arrástralos y pulsa **Commit changes**.
    (O por terminal: `git init`, `git add .`, `git commit -m "Primera versión"`, `git remote add origin ...`, `git push -u origin main`.)
 
 ## Paso 3 · Publicar en Netlify
