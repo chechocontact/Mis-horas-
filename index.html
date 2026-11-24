@@ -93,6 +93,8 @@ details summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;alig
 .item.paid .amt{color:var(--mut)}
 .item .ops{align-items:center}
 .bulk{width:100%;margin:4px 0 10px}
+.remember{display:flex;align-items:center;gap:10px;min-height:44px;margin:-4px 0 10px;font-size:15px;font-weight:500;cursor:pointer}
+.remember input{width:22px;height:22px;min-height:0;margin:0;accent-color:var(--acc);flex:none}
 .hide{display:none!important}
 .status{font-size:13px;color:var(--mut)}
 @media(prefers-reduced-motion:no-preference){.cred .big{transition:transform .2s}.cred .big.pop{transform:scale(1.04)}}
@@ -115,6 +117,7 @@ details summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;alig
       <div class="field"><label for="lu">Correo</label><input id="lu" type="email" inputmode="email" autocomplete="email" required autocapitalize="none" spellcheck="false"></div>
       <div class="field"><label for="lp">Contraseña</label><input id="lp" type="password" autocomplete="current-password" required></div>
       <div class="field hide" id="lp2w"><label for="lp2">Repite la contraseña</label><input id="lp2" type="password" autocomplete="new-password"></div>
+      <label class="remember"><input type="checkbox" id="rem" checked> Recordarme en este equipo</label>
       <button class="pri" id="lgo" style="width:100%">Entrar</button>
       <p class="err" id="lerr"></p>
       <p style="margin:6px 0 0"><button type="button" class="link" id="forgot">¿Olvidaste tu contraseña?</button></p>
@@ -183,7 +186,7 @@ details summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;alig
 <script type="module">
 import {firebaseConfig} from './firebase-config.js';
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,sendPasswordResetEmail,sendEmailVerification} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,sendPasswordResetEmail,sendEmailVerification,setPersistence,browserLocalPersistence,browserSessionPersistence} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import {initializeFirestore,getFirestore,persistentLocalCache,doc,getDoc,setDoc} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 {
 const $=id=>document.getElementById(id);
@@ -214,7 +217,7 @@ function setMode(m){mode=m;$('tIn').setAttribute('aria-selected',m==='in');$('tU
   $('lp2w').classList.toggle('hide',m==='in');$('lgo').textContent=m==='in'?'Entrar':'Crear cuenta';
   $('lp').autocomplete=m==='in'?'current-password':'new-password';$('lerr').textContent='';}
 $('tIn').onclick=()=>setMode('in');$('tUp').onclick=()=>setMode('up');
-try{const u=localStorage.getItem('horas_user');if(u)$('lu').value=u}catch(e){}
+try{const u=localStorage.getItem('horas_user');if(u)$('lu').value=u;if(localStorage.getItem('horas_rem')==='0')$('rem').checked=false}catch(e){}
 
 if(!configured){$('lerr').textContent='Falta configurar Firebase: pega tus datos en firebase-config.js (mira el README).';$('lgo').disabled=true}
 else{
@@ -228,7 +231,7 @@ else{
     try{const snap=await getDoc(ref);const o=snap.exists()?snap.data():{};
       S={records:Array.isArray(o.records)?o.records:[],rates:{...DEF_RATES,...(o.rates||{})},aux:Number.isFinite(+o.aux)?+o.aux:10000}}
     catch(ex){$('lerr').textContent='No se pudieron cargar tus turnos: '+msg(ex);await signOut(auth);return}
-    try{localStorage.setItem('horas_user',user)}catch(e){}
+    try{if(localStorage.getItem('horas_rem')!=='0')localStorage.setItem('horas_user',user)}catch(e){}
     enterApp();
   });
 }
@@ -241,6 +244,9 @@ $('fLogin').addEventListener('submit',async e=>{
   if(mode==='up'&&p!==$('lp2').value){err.textContent='Las contraseñas no coinciden.';return}
   const b=$('lgo');b.disabled=true;const old=b.textContent;b.textContent='Un momento…';
   try{
+    const rem=$('rem').checked;
+    try{localStorage.setItem('horas_rem',rem?'1':'0');if(!rem)localStorage.removeItem('horas_user')}catch(e){}
+    await setPersistence(auth,rem?browserLocalPersistence:browserSessionPersistence);
     if(mode==='up'){const cred=await createUserWithEmailAndPassword(auth,u,p);
       try{await sendEmailVerification(cred.user);toast('Cuenta creada. Te enviamos un correo de confirmación a '+u)}catch(e){toast('Cuenta creada. No se pudo enviar el correo de confirmación.')}}
     else await signInWithEmailAndPassword(auth,u,p);
