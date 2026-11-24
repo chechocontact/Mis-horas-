@@ -55,11 +55,15 @@ Usa **Firebase Authentication** para las cuentas y **Cloud Firestore** para guar
 ## Cómo se guardan los datos
 
 - Cada turno es un documento propio en Firestore: `usuarios/{uid}/turnos/{id}`. Guardar o editar un turno nunca puede borrar otro, aunque la app esté abierta en varios dispositivos a la vez.
+- **Historial:** los turnos **pagados** con más de 1 mes de antigüedad pasan solos a un documento por mes (`usuarios/{uid}/archivo/AAAA-MM`). No se cargan al abrir la app: aparecen al tocar **Ver historial**, al elegir ese mes en el filtro o al buscar en el historial. Los turnos pendientes de cobro nunca se archivan.
+- El paso de un turno al historial (y de vuelta, al editarlo, desmarcar el pago o eliminarlo) se hace con una transacción de Firestore: se completa todo o no cambia nada, así ningún turno se duplica ni se pierde. Cambiar un turno del historial requiere conexión.
+- En `usuarios/{uid}` se guarda un resumen por mes del historial (cantidad, total y horas) para que los totales de la app sean exactos sin cargar el historial completo.
+- Al abrir la app se leen solo los turnos del último mes y los pendientes de cobro, más 1 lectura del resumen. Cada mes del historial que se abre cuesta 1 lectura.
 - Los dispositivos se sincronizan en vivo: lo que se añade en el celular aparece en el computador sin recargar.
 - Arriba, bajo el correo, la app muestra **«Guardado en la nube ✓»** cuando el último cambio ya está en Firebase. Si dice «Sin señal…», el cambio está guardado en el teléfono y se sube solo al volver la conexión.
 - Las cuentas creadas con versiones anteriores tenían todos los turnos en una sola lista (`usuarios/{uid}.records`). Al entrar, la app los copia uno por uno al nuevo formato y deja la lista original en el campo `respaldo`.
 - Las tarifas por cargo (Acreditador 7.500, Validador 7.500, Runner 8.500, Coordinador 9.500) y el auxilio de transporte (10.000) son fijos y están en `index.html` (`DEF_RATES` y `aux:10000`). Los usuarios no pueden cambiarlos; solo el cargo «Otro» permite escribir un valor por hora.
-- Las reglas de `firestore.rules` impiden que alguien lea o modifique los turnos de otra persona. **Si actualizas desde una versión anterior, vuelve a pegar y publicar las reglas** (Firestore → Reglas): sin ellas los turnos no se pueden guardar.
+- Las reglas de `firestore.rules` impiden que alguien lea o modifique los turnos o el historial de otra persona. **Si actualizas desde una versión anterior, vuelve a pegar y publicar las reglas** (Firestore → Reglas): sin ellas los turnos no se pueden guardar.
 - Las cuentas son solo con correo y contraseña. Al registrarse, Firebase envía un correo de confirmación al correo indicado (el registro no se bloquea si no lo abren).
 - Las contraseñas las guarda Firebase Authentication de forma segura; la app nunca las almacena.
 - Los turnos también se guardan en el teléfono: si no hay señal en el evento, se sincronizan solos cuando vuelva.

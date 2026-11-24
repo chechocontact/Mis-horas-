@@ -127,6 +127,8 @@ body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-i
 .steps li::before{content:counter(s);position:absolute;left:0;top:-2px;width:28px;height:28px;border-radius:50%;background:var(--acc);color:var(--accInk);font-weight:700;display:grid;place-items:center;font-size:14px}
 .ic{width:20px;height:20px;vertical-align:-4px;display:inline-block;color:var(--acc)}
 html.standalone .web-only{display:none!important}
+.hist{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:14px 0;font-size:15px;color:var(--mut)}
+.hist b{color:var(--ink)}.hist button{min-height:42px}
 .hide{display:none!important}
 .status{font-size:13px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(prefers-reduced-motion:no-preference){.cred .big{transition:transform .2s}.cred .big.pop{transform:scale(1.04)}}
@@ -247,7 +249,7 @@ html.standalone .web-only{display:none!important}
 import {firebaseConfig} from './firebase-config.js';
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,sendPasswordResetEmail,sendEmailVerification,setPersistence,browserLocalPersistence,browserSessionPersistence} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import {initializeFirestore,getFirestore,persistentLocalCache,doc,getDoc,setDoc,deleteDoc,collection,onSnapshot,writeBatch} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import {initializeFirestore,getFirestore,persistentLocalCache,doc,getDoc,setDoc,deleteDoc,collection,onSnapshot,writeBatch,runTransaction} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 {
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -286,9 +288,9 @@ else{
   $('lgo').disabled=true;$('lgo').textContent='Cargando…';
   onAuthStateChanged(auth,async u=>{
     $('lgo').disabled=false;setMode(mode);
-    if(unsub){unsub();unsub=null}
+    if(unsub){unsub();unsub=null}if(unsubU){unsubU();unsubU=null}ARCH={};archIdx={};archDone=false;
     if(!u){ref=null;col=null;user='';S={records:[],rates:{...DEF_RATES},aux:10000};$('vApp').classList.add('hide');$('vLogin').classList.remove('hide');return}
-    ref=doc(db,'usuarios',u.uid);col=collection(db,'usuarios',u.uid,'turnos');user=u.email||'';
+    uidCur=u.uid;ref=doc(db,'usuarios',u.uid);col=collection(db,'usuarios',u.uid,'turnos');user=u.email||'';
     S={records:[],rates:{...DEF_RATES},aux:10000};loaded=false;
     // Migración: versiones anteriores guardaban todos los turnos en una sola lista dentro de usuarios/{uid}.
     // Se copian uno por uno a usuarios/{uid}/turnos y la lista original queda como respaldo.
@@ -301,9 +303,10 @@ else{
     enterApp();
     // Sincronización en vivo: lo que se guarde en otro dispositivo aparece aquí sin recargar.
     unsub=onSnapshot(col,{includeMetadataChanges:true},q=>{
-      loaded=true;S.records=q.docs.map(d=>({...d.data(),id:d.id}));render();
+      loaded=true;S.records=q.docs.map(d=>({...d.data(),id:d.id}));render();if(!q.metadata.fromCache)runArchive();
       if(!inflight)$('st').textContent=q.metadata.hasPendingWrites?'Sin señal: guardado en el teléfono, se sincroniza solo':'Guardado en la nube ✓';
     },ex=>{$('st').textContent='No se pudo sincronizar: '+msg(ex)});
+    unsubU=onSnapshot(ref,d=>{archIdx=(d.exists()&&d.data().archivo)||{};render()},()=>{});
   });
 }
 
@@ -409,7 +412,7 @@ $('fRec').addEventListener('submit',e=>{
   if(c==='otro'&&!(r>0)){err.textContent='Ingresa el valor por hora del cargo.';return}
   const rec={id:editing||(Date.now().toString(36)+Math.random().toString(36).slice(2,6)),evento:ev,tipo,lugar:ce.lugar,lugarK:ce.lugarK,fecha:$('fe').value||today(),
     cargo:c,cargoNombre:c==='otro'?($('on').value.trim()||'Otro'):NAMES[c],tarifa:r,minutos:mins,horas:Math.round(h*10000)/10000,aux:auxOn()?(+S.aux||0):0};rec.total=Math.round(mins*r/60)+rec.aux;
-  if(editing){const i=S.records.findIndex(x=>x.id===editing);if(i>=0){if(S.records[i].pagado){rec.pagado=true;rec.pagadoEl=S.records[i].pagadoEl}S.records[i]=rec}}else S.records.push(rec);
+  if(editing){const prev=S.records.find(x=>x.id===editing)||findRec(editing);if(prev&&prev.pagado){rec.pagado=true;rec.pagadoEl=prev.pagadoEl}const i=S.records.findIndex(x=>x.id===editing);if(i>=0)S.records[i]=rec;else S.records.push(rec)}else S.records.push(rec);
   const wasEditing=!!editing;const keep=editing?null:{v:$('ve').value,e:$('es').value,t:$('ev').value,f:$('fe').value,tp:tipo};resetForm();if(keep){setTipo(keep.tp);$('ve').value=keep.v;fillEvents(keep.e);$('ev').value=keep.t;$('fe').value=keep.f}
   saveRec(rec);render(true);
   if(wasEditing)go('turnos');else toast('Turno añadido: '+money(rec.total),'Ver mis turnos',()=>go('turnos'));
@@ -419,43 +422,120 @@ $('fRec').addEventListener('submit',e=>{
 // list
 $('q').addEventListener('input',()=>render());$('pf').addEventListener('change',()=>render());$('mo').addEventListener('change',()=>render());
 function monthLabel(m){const [y,mm]=m.split('-');return new Date(+y,+mm-1,1).toLocaleDateString('es-CO',{month:'long',year:'numeric'})}
+// ---------- Historial archivado ----------
+// Los turnos PAGADOS con más de 1 mes de antigüedad se guardan en un documento por mes
+// (usuarios/{uid}/archivo/{AAAA-MM}) y no se cargan hasta que se piden. Los pendientes de cobro
+// nunca se archivan. Pasar un turno al archivo (o sacarlo) se hace en una transacción: o se completa
+// todo o no cambia nada, así nunca se duplica ni se pierde un turno.
+let uidCur=null,ARCH={},archIdx={},archBusy=false,archDone=false,unsubU=null;
+const monthOf=r=>(r.fecha||'').slice(0,7);
+const cutoff=()=>{const d=new Date();d.setDate(d.getDate()-31);return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
+const summ=items=>({n:items.length,total:items.reduce((s,x)=>s+(+x.total||0),0),mins:items.reduce((s,x)=>s+recMin(x),0)});
+const strip=o=>{const c=clean(o);delete c._arch;return c};
+const archRef=m=>doc(db,'usuarios',uidCur,'archivo',m);
+const idxMonths=()=>Object.keys(archIdx).filter(m=>archIdx[m]&&archIdx[m].n>0);
+const unloaded=()=>idxMonths().filter(m=>!ARCH[m]);
+async function loadMonths(ms){ms=ms.filter(m=>!ARCH[m]);if(!ms.length)return;
+  $('st').textContent='Cargando historial…';
+  try{await Promise.all(ms.map(async m=>{const d=await getDoc(archRef(m));ARCH[m]=d.exists()&&Array.isArray(d.data().items)?d.data().items:[]}));$('st').textContent='Guardado en la nube ✓'}
+  catch(ex){$('st').textContent='No se pudo cargar el historial: '+msg(ex)}
+  render()}
+async function runArchive(){
+  if(archBusy||archDone||!navigator.onLine||!col)return;archBusy=true;
+  try{const cut=cutoff(),groups={};
+    S.records.filter(r=>r.pagado&&r.fecha&&r.fecha<cut).forEach(r=>{(groups[monthOf(r)]=groups[monthOf(r)]||[]).push(r.id)});
+    for(const m of Object.keys(groups)){const ids=groups[m];
+      for(let i=0;i<ids.length;i+=300){const part=ids.slice(i,i+300);
+        const items=await runTransaction(db,async tx=>{
+          const aSnap=await tx.get(archRef(m));const uSnap=await tx.get(ref);const fresh=[];
+          for(const id of part){const d=await tx.get(doc(col,id));if(d.exists()){const x={...d.data(),id};if(x.pagado&&x.fecha&&x.fecha<cut&&monthOf(x)===m)fresh.push(x)}}
+          if(!fresh.length)return null;
+          const ids2=new Set(fresh.map(x=>x.id));
+          const items=(aSnap.exists()&&Array.isArray(aSnap.data().items)?aSnap.data().items:[]).filter(x=>!ids2.has(x.id)).concat(fresh.map(strip));
+          tx.set(archRef(m),{mes:m,items,actualizado:Date.now()});
+          tx.set(ref,{archivo:{[m]:summ(items)}},{merge:true});
+          fresh.forEach(x=>tx.delete(doc(col,x.id)));
+          return items});
+        if(items&&ARCH[m])ARCH[m]=items}}
+    archDone=true}
+  catch(ex){/* sin conexión u otro error: se intentará la próxima vez que se abra la app */}
+  finally{archBusy=false}}
+// Saca un turno del archivo y lo vuelve a guardar como turno individual (con cambios opcionales).
+async function unarchive(rec,patch,remove){
+  if(!navigator.onLine){toast('Necesitas conexión a internet para cambiar un turno del historial.');throw new Error('offline')}
+  const m=rec._arch;inflight++;$('st').textContent='Guardando…';
+  try{const items=await runTransaction(db,async tx=>{
+      const aSnap=await tx.get(archRef(m));const list=aSnap.exists()&&Array.isArray(aSnap.data().items)?aSnap.data().items:[];
+      const it=list.find(x=>x.id===rec.id);if(!it)throw new Error('No se encontró el turno en el historial.');
+      const rest=list.filter(x=>x.id!==rec.id);
+      tx.set(archRef(m),{mes:m,items:rest,actualizado:Date.now()});
+      tx.set(ref,{archivo:{[m]:summ(rest)}},{merge:true});
+      if(!remove){const o=strip({...it,...(patch||{})});if(patch&&patch.pagado===false)delete o.pagadoEl;tx.set(doc(col,o.id),o)}
+      return rest});
+    ARCH[m]=items;$('st').textContent='Guardado en la nube ✓'}
+  catch(ex){$('st').textContent='No se guardó: '+(ex.code?msg(ex):ex.message);toast('No se pudo cambiar el turno del historial. Inténtalo de nuevo.');throw ex}
+  finally{inflight--}}
+function allRecs(){const live=new Set(S.records.map(r=>r.id)),out=[...S.records];
+  Object.keys(ARCH).forEach(m=>ARCH[m].forEach(x=>{if(!live.has(x.id))out.push({...x,_arch:m})}));return out}
+const findRec=id=>allRecs().find(x=>x.id===id);
+
 function render(pop){
-  const months=[...new Set(S.records.map(r=>(r.fecha||'').slice(0,7)).filter(Boolean))].sort().reverse();
+  const RECS=allRecs(),idxM=idxMonths(),unl=unloaded();
+  const months=[...new Set(RECS.map(monthOf).filter(Boolean).concat(idxM))].sort().reverse();
   const cur=$('mo').value;
   $('mo').innerHTML='<option value="">Todos</option>'+months.map(m=>`<option value="${esc(m)}">${esc(monthLabel(m))}</option>`).join('');
   if(months.includes(cur))$('mo').value=cur;
   $('evList').innerHTML=[...new Set(S.records.map(r=>r.evento))].map(v=>`<option value="${esc(v)}">`).join('');
   const q=$('q').value.trim().toLowerCase(),mo=$('mo').value,pf=$('pf').value;
-  const rs=S.records.filter(r=>(!pf||(pf==='paid')===!!r.pagado)&&(!q||(r.evento+' '+(r.lugar||'')+' '+(TIPOS[r.tipo]||'')).toLowerCase().includes(q))&&(!mo||(r.fecha||'').startsWith(mo)))
-    .sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')||b.id.localeCompare(a.id));
-  const tot=rs.reduce((s,r)=>s+(r.pagado?0:r.total),0),paid=rs.reduce((s,r)=>s+(r.pagado?r.total:0),0),mins=rs.reduce((s,r)=>s+recMin(r),0);
+  if(mo&&unl.includes(mo)){loadMonths([mo])}
+  const rs=RECS.filter(r=>(!pf||(pf==='paid')===!!r.pagado)&&(!q||(r.evento+' '+(r.lugar||'')+' '+(TIPOS[r.tipo]||'')).toLowerCase().includes(q))&&(!mo||(r.fecha||'').startsWith(mo)))
+    .sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')||String(b.id).localeCompare(String(a.id)));
+  // Meses archivados aún sin cargar: sus totales vienen del resumen guardado (todos son turnos pagados).
+  const extraM=(q||pf==='pend')?[]:unl.filter(m=>!mo||m===mo);
+  const ex=extraM.reduce((a,m)=>({n:a.n+archIdx[m].n,total:a.total+archIdx[m].total,mins:a.mins+archIdx[m].mins}),{n:0,total:0,mins:0});
+  const tot=rs.reduce((s,r)=>s+(r.pagado?0:r.total),0),paid=rs.reduce((s,r)=>s+(r.pagado?r.total:0),0)+ex.total,mins=rs.reduce((s,r)=>s+recMin(r),0)+ex.mins,cnt=rs.length+ex.n;
   const pend=rs.filter(r=>!r.pagado);
   $('tot').textContent=money(tot);{const allPend=S.records.filter(r=>!r.pagado);$('miniTot').textContent=money(allPend.reduce((s,r)=>s+r.total,0));$('nBadge').textContent=allPend.length;$('nBadge').classList.toggle('hide',!allPend.length)}$('totP').textContent='Pagado '+money(paid);$('totH').textContent=fmtHM(mins);
-  $('totN').textContent=rs.length+(rs.length===1?' turno':' turnos');
+  $('totN').textContent=cnt+(cnt===1?' turno':' turnos');
   $('credLbl').textContent=(q||mo||pf)?'Por cobrar (filtrado)':'Por cobrar';
   if(pop){const b=$('tot');b.classList.add('pop');setTimeout(()=>b.classList.remove('pop'),200)}
   const by={};let auxT=0;rs.forEach(r=>{const a=+r.aux||0;auxT+=a;by[r.cargoNombre]=(by[r.cargoNombre]||0)+r.total-a});if(auxT)by['Auxilio de transporte']=auxT;const tp={};rs.forEach(r=>{const k=TIPOS[r.tipo]||'Evento';tp[k]=(tp[k]||0)+recMin(r)});
   $('sum').innerHTML=Object.keys(by).length>1?Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div><span>${esc(k)}</span><span>${money(v)}</span></div>`).join(''):'';
   if(Object.keys(tp).length>1)$('sum').innerHTML+=`<div><span>Horas por tipo</span><span>${Object.entries(tp).map(([k,v])=>esc(k)+' '+fmtHM(v)).join(' · ')}</span></div>`;
   bulkArm=false;$('sum').insertAdjacentHTML('beforeend',pend.length>1?`<button type="button" class="bulk" id="bulk">Marcar ${pend.length} turnos como pagados (${money(tot)})</button>`:'');
-  if(!rs.length){$('list').innerHTML=`<li class="empty">${!loaded?'Cargando tus turnos…':S.records.length?'Ningún turno coincide con el filtro.':'Aún no tienes turnos. Añade el primero en «Añadir turno».'}</li>`;return}
+  // Aviso del historial sin cargar
+  const hidden=(pf==='pend')?[]:unl.filter(m=>!mo||m===mo),hn=hidden.reduce((s,m)=>s+archIdx[m].n,0);
+  const histBox=hidden.length?`<li class="hist"><span>${q?'La búsqueda aún no incluye':'Además hay'} <b>${hn} ${hn===1?'turno pagado':'turnos pagados'}</b> de ${hidden.length===1?esc(monthLabel(hidden[0])):hidden.length+' meses'} en el historial.</span><button type="button" id="histGo">${q?'Buscar también en el historial':'Ver historial'}</button></li>`:'';
+  if(!rs.length){$('list').innerHTML=`<li class="empty">${!loaded?'Cargando tus turnos…':(RECS.length||hidden.length)?'Ningún turno cargado coincide con el filtro.':'Aún no tienes turnos. Añade el primero en «Añadir turno».'}</li>`+histBox;return}
   $('list').innerHTML=rs.map(r=>{
     const d=r.fecha?new Date(r.fecha+'T12:00').toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'}):'';
     return `<li class="item${r.pagado?' paid':''}"><div class="ev">${esc(r.evento)}</div><div class="amt">${money(r.total)}</div>
-    <div class="meta">${r.lugar?esc(r.lugar.replace(/ \(antiguo.*\)/,''))+' · ':''}${esc(d)} · ${r.tipo&&r.tipo!=='evento'?`<span class="chip t-${r.tipo}">${TIPOS[r.tipo]}</span> `:''}<span class="chip">${esc(r.cargoNombre)}</span> · ${fmtHM(recMin(r))} × ${money(r.tarifa)}${r.aux?' + auxilio '+money(r.aux):''}</div><div></div>
-    <div class="ops"><button class="link" data-ed="${esc(r.id)}">Editar</button><button class="link" data-del="${esc(r.id)}">Eliminar</button><button class="pay" data-pay="${esc(r.id)}" aria-pressed="${!!r.pagado}">${r.pagado?'✓ Pagado':'Marcar pagado'}</button></div></li>`}).join('');
+    <div class="meta">${r.lugar?esc(r.lugar.replace(/ \(antiguo.*\)/,''))+' · ':''}${esc(d)} · ${r.tipo&&r.tipo!=='evento'?`<span class="chip t-${r.tipo}">${TIPOS[r.tipo]}</span> `:''}<span class="chip">${esc(r.cargoNombre)}</span> · ${fmtHM(recMin(r))} × ${money(r.tarifa)}${r.aux?' + auxilio '+money(r.aux):''}${r._arch?' · <span class="chip">Historial</span>':''}</div><div></div>
+    <div class="ops"><button class="link" data-ed="${esc(r.id)}">Editar</button><button class="link" data-del="${esc(r.id)}">Eliminar</button><button class="pay" data-pay="${esc(r.id)}" aria-pressed="${!!r.pagado}">${r.pagado?'✓ Pagado':'Marcar pagado'}</button></div></li>`}).join('')+histBox;
 }
-$('list').addEventListener('click',e=>{
-  const ed=e.target.closest('[data-ed]'),dl=e.target.closest('[data-del]'),py=e.target.closest('[data-pay]');
-  if(py){const r=S.records.find(x=>x.id===py.dataset.pay);if(!r)return;r.pagado=!r.pagado;if(r.pagado)r.pagadoEl=today();else delete r.pagadoEl;saveRec(r);render(true);return}
-  if(ed){const r=S.records.find(x=>x.id===ed.dataset.ed);if(!r)return;editing=r.id;fillCargos();
+function openEdit(r){editing=r.id;fillCargos();
     {const k=r.lugarK&&VENUES[r.lugarK]?r.lugarK:'otro',m=CAT.find(e=>e.v===k&&e.n===r.evento&&e.d===r.fecha);
      $('ve').value=k;fillEvents(m?m.id:'man');$('ev').value=r.evento}$('fe').value=r.fecha;$('ho').value=minText(recMin(r));$('ca').value=r.cargo;
     if(r.cargo==='otro'){$('on').value=r.cargoNombre;$('ov').value=r.tarifa}
     else if(r.tarifa!==S.rates[r.cargo]){$('ca').value='otro';$('on').value=r.cargoNombre;$('ov').value=r.tarifa}
     $('ca').onchange();setAux(!!r.aux);setTipo(r.tipo||'evento');$('fTitle').textContent='Editar turno';$('sv').textContent='Guardar cambios';$('cx').classList.remove('hide');
     go('anadir');$('ve').focus({preventScroll:true})}
-  if(dl){const i=S.records.findIndex(x=>x.id===dl.dataset.del);if(i<0)return;
+$('list').addEventListener('click',async e=>{
+  if(e.target.closest('#histGo')){const mo=$('mo').value;loadMonths(mo?[mo]:unloaded());return}
+  const ed=e.target.closest('[data-ed]'),dl=e.target.closest('[data-del]'),py=e.target.closest('[data-pay]');
+  const id=(ed||dl||py||{}).dataset;if(!id)return;
+  const r=findRec(id.ed||id.del||id.pay);if(!r)return;
+  if(py){
+    if(r._arch){try{await unarchive(r,{pagado:false})}catch(x){return}render(true);return}
+    r.pagado=!r.pagado;if(r.pagado)r.pagadoEl=today();else delete r.pagadoEl;saveRec(r);render(true);return}
+  if(ed){
+    if(r._arch){try{await unarchive(r,{})}catch(x){return}const live={...r};delete live._arch;openEdit(live);return}
+    openEdit(r);return}
+  if(dl){
+    if(r._arch){try{await unarchive(r,null,true)}catch(x){return}
+      lastDel={rec:strip(r),i:0};render(true);
+      toast('Turno eliminado','Deshacer',()=>{if(lastDel){saveRec(lastDel.rec);lastDel=null;render(true)}});return}
+    const i=S.records.findIndex(x=>x.id===r.id);if(i<0)return;
     lastDel={rec:S.records[i],i};S.records.splice(i,1);if(editing===lastDel.rec.id)resetForm();delRec(lastDel.rec.id);render(true);
     toast('Turno eliminado','Deshacer',()=>{if(lastDel){S.records.splice(lastDel.i,0,lastDel.rec);saveRec(lastDel.rec);lastDel=null;render(true)}})}
 });
