@@ -95,6 +95,7 @@ details summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;alig
 .bulk{width:100%;margin:4px 0 10px}
 .remember{display:flex;align-items:center;gap:10px;min-height:44px;margin:-4px 0 10px;font-size:15px;font-weight:500;cursor:pointer}
 .remember input{width:22px;height:22px;min-height:0;margin:0;accent-color:var(--acc);flex:none}
+input:disabled{opacity:1;background:var(--card);color:var(--ink);-webkit-text-fill-color:var(--ink)}
 .hide{display:none!important}
 .status{font-size:13px;color:var(--mut)}
 @media(prefers-reduced-motion:no-preference){.cred .big{transition:transform .2s}.cred .big.pop{transform:scale(1.04)}}
@@ -144,7 +145,7 @@ details summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;alig
         <div class="field"><label id="tipoL">Tipo de turno</label><div class="seg" id="tipo" role="group" aria-labelledby="tipoL">
           <button type="button" data-t="evento" aria-pressed="true">Evento</button><button type="button" data-t="montaje" aria-pressed="false">Montaje</button><button type="button" data-t="desmontaje" aria-pressed="false">Desmontaje</button></div></div>
         <div class="row2">
-          <div class="field"><label for="fe">Fecha</label><input id="fe" type="date" required></div>
+          <div class="field"><label for="fe">Fecha</label><input id="fe" type="date" required><div class="mut" id="feHint" style="margin-top:4px"></div></div>
           <div class="field"><label for="ho">Horas trabajadas</label><input id="ho" type="text" placeholder="Ej. 10:45" autocomplete="off" required><div class="mut" id="hoHint" style="margin-top:4px">Horas:minutos, p. ej. 8:30</div></div>
         </div>
         <div class="field"><label for="ca">Cargo</label><select id="ca"></select></div>
@@ -187,7 +188,7 @@ import {initializeFirestore,getFirestore,persistentLocalCache,doc,getDoc,setDoc}
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=n=>'$\u00a0'+Math.round(n||0).toLocaleString('es-CO');
-const DEF_RATES={acreditador:7500,validador:7500,runner:8500,coordinador:10000};
+const DEF_RATES={acreditador:7500,validador:7500,runner:8500,coordinador:9500};
 const NAMES={acreditador:'Acreditador',validador:'Validador',runner:'Runner',coordinador:'Coordinador',otro:'Otro'};
 const VENUES={vc:'Vive Claro Distrito Cultural',vmh:'Vive Claro Music Hall',sb:'Parque Simón Bolívar',mp:'Coliseo MedPlus',ar:'El Corazón de Bogotá Arena (antiguo Movistar Arena)',cp:'Estadio El Campín',otro:'Otro lugar (escribir)'};
 const CAT=[
@@ -302,10 +303,12 @@ function fillEvents(pick){const v=$('ve').value,man=v==='otro';
   const evs=CAT.filter(e=>e.v===v).sort((a,b)=>a.d.localeCompare(b.d));
   $('es').innerHTML=evs.map(e=>`<option value="${e.id}">${esc(fd(e.d))} · ${esc(e.n)}</option>`).join('')+'<option value="man">✎ Escribir otro evento</option>';
   if(pick)$('es').value=pick;else{const t=today(),past=evs.filter(e=>e.d<=t);$('es').value=(past.length?past[past.length-1]:evs[0]||{id:'man'}).id}
-  $('esW').classList.toggle('hide',man);syncEv(!pick)}
-function syncEv(setDate){const man=$('ve').value==='otro'||$('es').value==='man';$('evW').classList.toggle('hide',!man);
-  const e=CAT.find(x=>x.id===$('es').value);if(e&&!man&&setDate)$('fe').value=e.d}
-$('ve').onchange=()=>fillEvents();$('es').onchange=()=>syncEv(true);
+  $('esW').classList.toggle('hide',man);syncEv()}
+function syncEv(){const man=$('ve').value==='otro'||$('es').value==='man';$('evW').classList.toggle('hide',!man);
+  const e=CAT.find(x=>x.id===$('es').value),lock=!!(e&&!man);
+  if(lock)$('fe').value=e.d;else if(!$('fe').value)$('fe').value=today();
+  $('fe').disabled=lock;$('feHint').textContent=lock?'Fecha del evento':''}
+$('ve').onchange=()=>fillEvents();$('es').onchange=()=>syncEv();
 function curEvent(){const v=$('ve').value,man=v==='otro'||$('es').value==='man';const e=CAT.find(x=>x.id===$('es').value);
   return {evento:man?$('ev').value.trim():e.n,lugar:v==='otro'?'':VENUES[v],lugarK:v}}
 const TIPOS={evento:'Evento',montaje:'Montaje',desmontaje:'Desmontaje'};
