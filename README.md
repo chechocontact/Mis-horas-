@@ -31,7 +31,17 @@ Usa **Firebase Authentication** para las cuentas y **Cloud Firestore** para guar
 2. Sube **todos los archivos** de esta carpeta (no hay subcarpetas, se pueden subir uno por uno desde el celular): en el repositorio, **Add file → Upload files**, arrástralos y pulsa **Commit changes**.
    (O por terminal: `git init`, `git add .`, `git commit -m "Primera versión"`, `git remote add origin ...`, `git push -u origin main`.)
 
-## Paso 3 · Publicar en Netlify
+## Paso 3 · Publicar (Cloudflare Pages, recomendado)
+
+1. Entra a https://dash.cloudflare.com (cuenta gratis) → **Workers y Pages** → **Crear** → pestaña **Pages** → **Conectar a Git** → elige GitHub y el repositorio.
+2. Configuración de compilación: **Framework: Ninguno**, **Comando de compilación: vacío**, **Directorio de salida: `/`** (o déjalo vacío). Pulsa **Guardar e implementar**.
+3. Te da una dirección como `https://mis-horass.pages.dev`. Cada cambio en GitHub se publica solo (500 publicaciones gratis al mes).
+4. Las cabeceras de caché van en el archivo `_headers`.
+5. En Firebase → **Authentication → Configuración → Dominios autorizados**, añade tu dirección `…pages.dev`.
+
+## Paso 3 (alternativa) · Publicar en Netlify
+
+En el plan gratuito de Netlify cada publicación cuesta créditos: sube todos los archivos en un solo commit.
 
 1. Entra a https://app.netlify.com → **Add new project → Import an existing project → GitHub** y elige el repositorio.
 2. No hay que configurar nada: deja el comando de build vacío y el directorio de publicación en `.` (ya viene en `netlify.toml`). Pulsa **Deploy**.
