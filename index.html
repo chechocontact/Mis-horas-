@@ -171,7 +171,7 @@ label{margin-bottom:8px}
 .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .chip{padding:3px 10px;background:var(--bg)}
 .how{font-size:14px;margin-top:10px;color:var(--ink)}
-.item .ops{margin:8px -6px 0;padding-top:6px;border-top:1px solid var(--line)}
+.item .ops{margin:8px 0 0 -6px;padding-top:6px;border-top:1px solid var(--line)}
 .empty{background:var(--card);border-radius:16px;padding:28px 18px}
 .hist{background:var(--card);border-radius:16px;padding:16px 18px}
 .inst{margin-bottom:16px}
@@ -195,6 +195,48 @@ input[type=date]::-webkit-datetime-edit{padding:0}
 .btnA{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:10px;font-weight:600;text-decoration:none}
 .move .btnA.pri{background:#fff;color:#c23a0c;border:0}
 .move button{background:rgba(255,255,255,.16);color:#fff;border-color:rgba(255,255,255,.4)}.move button.link{background:none;border:0;color:#fff}
+.credit{color:var(--mut);font-size:12.5px;line-height:1.5}
+.credit.mob{text-align:center;padding:8px 0 28px}
+.desk{display:none!important}
+.lcol,.rcol{display:contents}
+.side{display:contents}
+/* ---- Escritorio: menú lateral fijo ---- */
+@media(min-width:960px){
+  .mob{display:none!important}.desk{display:flex!important}
+  #vApp.appShell{display:grid;grid-template-columns:280px minmax(0,1fr);max-width:none;padding:0;min-height:100vh}
+  #vApp.appShell.hide{display:none}
+  .side{display:flex;flex-direction:column;gap:22px;position:sticky;top:0;height:100vh;overflow:auto;padding:28px 20px 22px;background:var(--card);border-right:1px solid var(--edge)}
+  .profile{flex-direction:column;align-items:stretch;gap:16px;margin:0;padding:18px;border-radius:16px;background:var(--bg);border:1px solid var(--edge)}
+  .profile .brand{align-items:center}.profile .brand img{width:48px;height:48px;border-radius:12px}
+  .profile h1{font-size:24px}.profile .mut{font-size:13.5px}
+  .profile #out{width:100%;font-size:15px}
+  .nav{position:static;display:flex;flex-direction:column;gap:10px;padding:0;margin:0;border:0;background:none}
+  .nav button{justify-content:flex-start;padding:0 18px;min-height:54px;font-size:16px;border-radius:14px;background:var(--bg)}
+  .nav button .cnt{margin-left:auto}
+  .sideSum{flex-direction:column;gap:2px;padding:16px 18px;border-radius:14px;background:var(--bg);border:1px solid var(--edge);font-size:14px;color:var(--mut)}
+  .sideSum b{font:800 26px/1.15 Archivo,Inter,sans-serif;color:var(--ink)}
+  .credit.desk{margin-top:auto;display:block!important;padding:4px 4px 0}
+  .main{padding:36px clamp(28px,4vw,56px) 56px;min-width:0}
+  .main>.inst{max-width:1180px;margin:0 auto 28px}
+  .profile .status{white-space:normal;font-size:12.5px}
+  .listTitle{grid-column:1/-1;margin:0 2px -8px}
+  #secList:not(.hide){grid-template-columns:minmax(280px,340px) minmax(0,1fr)}
+  .sec{max-width:1180px;margin:0 auto;padding:0 0 24px}
+  /* Añadir turno: pasos lado a lado, total abajo a lo ancho */
+  #fRec.stack{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+  #fRec .totalBox{grid-column:1/-1;flex-direction:row;align-items:center;gap:24px}
+  #fRec .totalBox .calc{flex:1}
+  #fRec .totalBox #sv{width:auto!important;min-width:240px;min-height:54px;font-size:17px}
+  #fRec .totalBox .err{flex-basis:100%}
+  .totalBox{flex-wrap:wrap}
+  /* Mis turnos: resumen y filtros a la izquierda (fijos), lista a la derecha */
+  #secList:not(.hide){display:grid;gap:28px;align-items:start}
+  .lcol{display:flex;flex-direction:column;gap:20px;position:sticky;top:28px;max-height:calc(100vh - 56px);overflow:auto;padding-bottom:4px}
+  .rcol{display:block}
+  .rcol .listHead{margin-top:0}
+  .cred .big{font-size:44px}
+}
+@media(min-width:1280px){#secList:not(.hide){grid-template-columns:380px minmax(0,1fr)}}
 .hide{display:none!important}
 .status{font-size:13px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(prefers-reduced-motion:no-preference){.cred .big{transition:transform .2s}.cred .big.pop{transform:scale(1.04)}}
@@ -240,9 +282,9 @@ input[type=date]::-webkit-datetime-edit{padding:0}
   </div>
 </div>
 
-<div id="vApp" class="wrap hide">
-  <div class="inst web-only hide" id="inst"><span>Estás usando Mis Horass en el navegador. Instálala como app en tu celular.</span><span class="instB"><button type="button" class="pri hide" data-install>Instalar</button><button type="button" data-guide>Cómo instalar</button><button type="button" class="link" id="instX">Ahora no</button></span></div>
-  <div class="top">
+<div id="vApp" class="wrap appShell hide">
+<aside class="side">
+  <div class="top profile">
     <div class="brand"><img src="/logo.png" alt="" width="40" height="40"><div><h1>Mis Horass</h1><div class="mut"><span id="who"></span></div><div class="status" id="st">Cargando…</div></div></div>
     <button id="out">Cerrar sesión</button>
   </div>
@@ -250,6 +292,11 @@ input[type=date]::-webkit-datetime-edit{padding:0}
     <button type="button" id="nAdd" data-go="anadir">＋ Añadir turno</button>
     <button type="button" id="nList" data-go="turnos">Mis turnos <span class="cnt hide" id="nBadge"></span></button>
   </nav>
+  <div class="sideSum desk"><span>Por cobrar</span><b id="sideTot">$ 0</b><span id="sidePend">Sin turnos pendientes</span></div>
+  <footer class="credit desk">Diseñado por Sergio y Claude<br>© 2026 · Todos los derechos reservados</footer>
+</aside>
+<main class="main">
+  <div class="inst web-only hide" id="inst"><span>Estás usando Mis Horass en el navegador. Instálala como app en tu celular.</span><span class="instB"><button type="button" class="pri hide" data-install>Instalar</button><button type="button" data-guide>Cómo instalar</button><button type="button" class="link" id="instX">Ahora no</button></span></div>
   <section class="sec" id="secAdd">
       <div class="secHead"><h2 id="fTitle">Añadir turno</h2><button type="button" id="cx" class="link hide">Cancelar edición</button></div>
       <form id="fRec" class="stack">
@@ -284,9 +331,11 @@ input[type=date]::-webkit-datetime-edit{padding:0}
           <p class="err" id="ferr"></p>
         </div>
       </form>
-      <div class="mini"><span>Total por cobrar: <b id="miniTot">$ 0</b></span><button type="button" class="link" data-go="turnos">Ver mis turnos</button></div>
+      <div class="mini mob"><span>Total por cobrar: <b id="miniTot">$ 0</b></span><button type="button" class="link" data-go="turnos">Ver mis turnos</button></div>
   </section>
   <section class="sec hide" id="secList">
+    <div class="secHead desk listTitle"><h2>Mis turnos</h2></div>
+    <div class="lcol">
       <div class="cred" aria-live="polite">
         <div class="lbl" id="credLbl">Por cobrar</div>
         <div class="big" id="tot">$ 0</div>
@@ -300,8 +349,11 @@ input[type=date]::-webkit-datetime-edit{padding:0}
         </div>
       </div>
       <div class="panel hide" id="sumP"><h3>Resumen</h3><div class="sum" id="sum"></div></div>
-      <div><h3 class="listHead">Turnos</h3><ul class="list" id="list"></ul></div>
+    </div>
+      <div class="rcol"><h3 class="listHead">Turnos</h3><ul class="list" id="list"></ul></div>
   </section>
+  <footer class="credit mob">Diseñado por Sergio y Claude<br>© 2026 · Todos los derechos reservados</footer>
+</main>
 </div>
 <div class="sheetBg hide" id="gSheet" role="dialog" aria-modal="true" aria-labelledby="gTitle">
   <div class="sheet">
@@ -441,7 +493,7 @@ document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(!
 window.addEventListener('hashchange',()=>go(location.hash==='#turnos'?'turnos':'anadir',true));
 function enterApp(){
   $('vLogin').classList.add('hide');$('vApp').classList.remove('hide');$('who').textContent=user;
-  try{setHM(localStorage.getItem('horas_hm')||'total')}catch(e){setHM('total')}resetForm();render();go(location.hash==='#turnos'?'turnos':'anadir');
+  try{setHM(localStorage.getItem('horas_hm')||'total')}catch(e){setHM('total')}resetForm();render();go('anadir');
 }
 $('out').onclick=()=>{if(auth)signOut(auth);setMode('in')};
 
@@ -593,7 +645,7 @@ function render(pop){
   const ex=extraM.reduce((a,m)=>({n:a.n+archIdx[m].n,total:a.total+archIdx[m].total,mins:a.mins+archIdx[m].mins}),{n:0,total:0,mins:0});
   const tot=rs.reduce((s,r)=>s+(r.pagado?0:r.total),0),paid=rs.reduce((s,r)=>s+(r.pagado?r.total:0),0)+ex.total,mins=rs.reduce((s,r)=>s+recMin(r),0)+ex.mins,cnt=rs.length+ex.n;
   const pend=rs.filter(r=>!r.pagado);
-  $('tot').textContent=money(tot);{const allPend=S.records.filter(r=>!r.pagado);$('miniTot').textContent=money(allPend.reduce((s,r)=>s+r.total,0));$('nBadge').textContent=allPend.length;$('nBadge').classList.toggle('hide',!allPend.length)}$('totP').textContent='Pagado '+money(paid);$('totH').textContent=fmtHM(mins);
+  $('tot').textContent=money(tot);{const allPend=S.records.filter(r=>!r.pagado);$('miniTot').textContent=money(allPend.reduce((s,r)=>s+r.total,0));$('sideTot').textContent=$('miniTot').textContent;$('sidePend').textContent=allPend.length?(allPend.length+(allPend.length===1?' turno pendiente':' turnos pendientes')):'Sin turnos pendientes';$('nBadge').textContent=allPend.length;$('nBadge').classList.toggle('hide',!allPend.length)}$('totP').textContent='Pagado '+money(paid);$('totH').textContent=fmtHM(mins);
   $('totN').textContent=cnt+(cnt===1?' turno':' turnos');
   $('credLbl').textContent=(q||mo||pf)?'Por cobrar (filtrado)':'Por cobrar';
   if(pop){const b=$('tot');b.classList.add('pop');setTimeout(()=>b.classList.remove('pop'),200)}
