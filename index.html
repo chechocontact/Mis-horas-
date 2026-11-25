@@ -237,6 +237,11 @@ input[type=date]::-webkit-datetime-edit{padding:0}
   .cred .big{font-size:44px}
 }
 @media(min-width:1280px){#secList:not(.hide){grid-template-columns:380px minmax(0,1fr)}}
+.esGrp{padding:14px;border-radius:14px;background:var(--bg);border:1px solid var(--edge);margin-bottom:12px}
+.esT{font:700 14px/1.2 Archivo,Inter,sans-serif;margin-bottom:10px;color:var(--acc)}
+.esGrp label{font-size:13px;margin-bottom:6px}
+.esGrp .row2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:10px}
+.esGrp input{background:var(--card)!important}
 .hide{display:none!important}
 .status{font-size:13px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(prefers-reduced-motion:no-preference){.cred .big{transition:transform .2s}.cred .big.pop{transform:scale(1.04)}}
@@ -314,10 +319,14 @@ input[type=date]::-webkit-datetime-edit{padding:0}
           <div class="field"><label id="hmL">¿Cómo quieres registrar las horas?</label><div class="seg two" id="hmode" role="group" aria-labelledby="hmL">
             <button type="button" data-hm="total" aria-pressed="true">Total de horas</button><button type="button" data-hm="es" aria-pressed="false">Entrada y salida</button></div></div>
           <div class="field" id="hoW"><label for="ho">Horas trabajadas</label><input id="ho" type="text" placeholder="Ej. 10:45" autocomplete="off"><div class="hint" id="hoHint">Horas:minutos, p. ej. 8:30</div></div>
-          <div class="field hide" id="esHW"><div class="row2">
-            <div><label for="hin">Hora de entrada</label><input id="hin" type="time"></div>
-            <div><label for="hout">Hora de salida</label><input id="hout" type="time"></div></div>
-            <div class="hint" id="esHint">Si sales después de medianoche, se cuenta como el día siguiente.</div></div>
+          <div class="field hide" id="esHW">
+            <div class="esGrp"><div class="esT">Entrada</div><div class="row2">
+              <div><label for="din">Día</label><input id="din" type="date"></div>
+              <div><label for="hin">Hora</label><input id="hin" type="time"></div></div></div>
+            <div class="esGrp"><div class="esT">Salida</div><div class="row2">
+              <div><label for="dout">Día</label><input id="dout" type="date"></div>
+              <div><label for="hout">Hora</label><input id="hout" type="time"></div></div></div>
+            <div class="hint" id="esHint">Si sales después de medianoche, el día de salida pasa solo al día siguiente.</div></div>
           <div class="field"><label for="ca">Cargo</label><select id="ca"></select></div>
           <div class="row2 hide" id="otroW">
             <div class="field"><label for="on">Nombre del cargo</label><input id="on" placeholder="Ej. Logística"></div>
@@ -515,16 +524,25 @@ const recMin=r=>Number.isFinite(+r.minutos)?+r.minutos:Math.round((+r.horas||0)*
 const minText=min=>{const h=Math.floor(min/60),m=min%60;return m?h+':'+String(m).padStart(2,'0'):String(h)};
 let hm='total';
 const toM=v=>{const m=/^(\d{1,2}):(\d{2})/.exec(v||'');return m?(+m[1])*60+(+m[2]):NaN};
-function esMins(){const a=toM($('hin').value),b=toM($('hout').value);if(!Number.isFinite(a)||!Number.isFinite(b))return NaN;let d=b-a;if(d<=0)d+=1440;return d}
+// Entrada y salida con día: minutos entre las dos fechas/horas (hora local).
+const dt=(d,t)=>{const m=toM(t);if(!d||!Number.isFinite(m))return NaN;const [y,mo,da]=d.split('-').map(Number);return Date.UTC(y,mo-1,da)/6e4+m};
+const addDay=(d,n)=>{const [y,mo,da]=d.split('-').map(Number);return new Date(Date.UTC(y,mo-1,da+n)).toISOString().slice(0,10)};
+let doutTouched=false,dinTouched=false;
+function esMins(){const a=dt($('din').value,$('hin').value),b=dt($('dout').value,$('hout').value);if(!Number.isFinite(a)||!Number.isFinite(b))return NaN;return b-a}
+// Si la salida queda antes o igual que la entrada el mismo día, pasa sola al día siguiente (salvo que la persona haya elegido el día).
+function autoOut(){const di=$('din').value;if(!di||doutTouched)return;const a=toM($('hin').value),b=toM($('hout').value);
+  $('dout').value=(Number.isFinite(a)&&Number.isFinite(b)&&b<=a)?addDay(di,1):di}
+function syncDays(){const f=$('fe').value;if(f&&!dinTouched&&$('din').value!==f){$('din').value=f;doutTouched=false}autoOut()}
 function getMins(){return hm==='es'?esMins():parseHM($('ho').value)}
 function setHM(m){hm=m==='es'?'es':'total';$('hmode').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.hm===hm));
   $('hoW').classList.toggle('hide',hm==='es');$('esHW').classList.toggle('hide',hm!=='es');try{localStorage.setItem('horas_hm',hm)}catch(e){}calc()}
 $('hmode').addEventListener('click',e=>{const b=e.target.closest('[data-hm]');if(b)setHM(b.dataset.hm)});
-['hin','hout'].forEach(i=>['input','change','blur'].forEach(ev=>$(i).addEventListener(ev,()=>calc())));
+['hin','hout'].forEach(i=>['input','change','blur'].forEach(ev=>$(i).addEventListener(ev,()=>{autoOut();calc()})));
+['input','change'].forEach(ev=>{$('din').addEventListener(ev,()=>{dinTouched=true;autoOut();calc()});$('dout').addEventListener(ev,()=>{doutTouched=true;calc()});$('fe').addEventListener(ev,()=>{syncDays();calc()})});
 function calc(){const mins=getMins(),ok=Number.isFinite(mins),h=ok?mins/60:0,r=rate(),a=auxOn()?(+S.aux||0):0;$('auxV').textContent='+ '+money(S.aux);
   $('hoHint').textContent=$('ho').value.trim()?(ok?'= '+fmtHM(mins)+(mins%60?' ('+h.toLocaleString('es-CO',{maximumFractionDigits:2})+' h)':''):'Escribe horas:minutos, p. ej. 10:45'):'Horas:minutos, p. ej. 8:30';
-  if(hm==='es'){const a=toM($('hin').value),b=toM($('hout').value);
-    $('esHint').textContent=ok?`= ${fmtHM(mins)} trabajadas`+(b<=a?' (sales al día siguiente)':''):'Si sales después de medianoche, se cuenta como el día siguiente.'}
+  if(hm==='es'){const nd=$('dout').value&&$('din').value&&$('dout').value!==$('din').value;
+    $('esHint').textContent=Number.isFinite(mins)&&mins<=0?'La salida debe ser después de la entrada.':ok?`= ${fmtHM(mins)} trabajadas`+(nd?' (sales otro día)':''):'Si sales después de medianoche, el día de salida pasa solo al día siguiente.'}
   $('calcTxt').textContent=`${ok?fmtHM(mins):'0 h'} × ${money(r)}`+(a?` + auxilio ${money(a)}`:'');$('calc').textContent=money(Math.round(mins*r/60||0)+a)}
 $('ca').onchange=()=>{$('otroW').classList.toggle('hide',$('ca').value!=='otro');calc()};
 ['ho','ov'].forEach(i=>$(i).addEventListener('input',calc));
@@ -539,7 +557,7 @@ function fillEvents(pick){const v=$('ve').value,man=v==='otro';
 function syncEv(){const man=$('ve').value==='otro'||$('es').value==='man';$('evW').classList.toggle('hide',!man);
   const e=CAT.find(x=>x.id===$('es').value),lock=!!(e&&!man);
   if(lock)$('fe').value=e.d;else if(!$('fe').value)$('fe').value=today();
-  $('fe').disabled=lock;$('feHint').textContent=lock?'Fecha del evento':''}
+  $('fe').disabled=lock;$('feHint').textContent=lock?'Fecha del evento':'';syncDays()}
 $('ve').onchange=()=>fillEvents();$('es').onchange=()=>syncEv();
 function curEvent(){const v=$('ve').value,man=v==='otro'||$('es').value==='man';const e=CAT.find(x=>x.id===$('es').value);
   return {evento:man?$('ev').value.trim():e.n,lugar:v==='otro'?'':VENUES[v],lugarK:v}}
@@ -548,7 +566,7 @@ let tipo='evento';
 function setTipo(t){tipo=TIPOS[t]?t:'evento';$('tipo').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===tipo))}
 $('tipo').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(b)setTipo(b.dataset.t)});
 function resetForm(){editing=null;fillCargos();$('fTitle').textContent='Añadir turno';$('sv').textContent='Añadir';$('cx').classList.add('hide');
-  $('ev').value='';$('ho').value='';$('hin').value='';$('hout').value='';$('on').value='';$('ov').value='';$('fe').value=today();$('ferr').textContent='';setAux(false);setTipo('evento');
+  $('ev').value='';$('ho').value='';$('hin').value='';$('hout').value='';dinTouched=false;doutTouched=false;$('din').value='';$('dout').value='';$('on').value='';$('ov').value='';$('fe').value=today();$('ferr').textContent='';setAux(false);setTipo('evento');
   $('ca').value=$('ca').value||'acreditador';$('ca').onchange();fillEvents()}
 $('cx').onclick=()=>{const w=!!editing;resetForm();if(w)go('turnos')};
 
@@ -556,14 +574,14 @@ $('fRec').addEventListener('submit',e=>{
   e.preventDefault();const err=$('ferr');err.textContent='';
   const ce=curEvent(),ev=ce.evento,mins=getMins(),h=mins/60,c=$('ca').value,r=rate();
   if(!ev){err.textContent='Escribe el nombre del evento.';return}
-  if(hm==='es'&&(!$('hin').value||!$('hout').value)){err.textContent='Escribe la hora de entrada y la de salida.';return}
-  if(hm==='es'&&$('hin').value===$('hout').value){err.textContent='La hora de entrada y la de salida no pueden ser iguales.';return}
+  if(hm==='es'&&(!$('din').value||!$('hin').value||!$('dout').value||!$('hout').value)){err.textContent='Escribe el día y la hora de entrada y de salida.';return}
+  if(hm==='es'&&!(mins>0)){err.textContent='La salida debe ser después de la entrada.';return}
   if(!(mins>0)||mins>48*60){err.textContent='Escribe las horas trabajadas como horas:minutos, por ejemplo 10:45.';return}
   if(c==='otro'&&!(r>0)){err.textContent='Ingresa el valor por hora del cargo.';return}
   const rec={id:editing||(Date.now().toString(36)+Math.random().toString(36).slice(2,6)),evento:ev,tipo,lugar:ce.lugar,lugarK:ce.lugarK,fecha:$('fe').value||today(),
-    cargo:c,cargoNombre:c==='otro'?($('on').value.trim()||'Otro'):NAMES[c],tarifa:r,minutos:mins,horas:Math.round(h*10000)/10000,aux:auxOn()?(+S.aux||0):0};if(hm==='es'){rec.entrada=$('hin').value;rec.salida=$('hout').value}rec.total=Math.round(mins*r/60)+rec.aux;
+    cargo:c,cargoNombre:c==='otro'?($('on').value.trim()||'Otro'):NAMES[c],tarifa:r,minutos:mins,horas:Math.round(h*10000)/10000,aux:auxOn()?(+S.aux||0):0};if(hm==='es'){rec.entrada=$('hin').value;rec.salida=$('hout').value;rec.entradaDia=$('din').value;rec.salidaDia=$('dout').value}rec.total=Math.round(mins*r/60)+rec.aux;
   if(editing){const prev=S.records.find(x=>x.id===editing)||findRec(editing);if(prev&&prev.pagado){rec.pagado=true;rec.pagadoEl=prev.pagadoEl}const i=S.records.findIndex(x=>x.id===editing);if(i>=0)S.records[i]=rec;else S.records.push(rec)}else S.records.push(rec);
-  const wasEditing=!!editing;const keep=editing?null:{v:$('ve').value,e:$('es').value,t:$('ev').value,f:$('fe').value,tp:tipo};resetForm();if(keep){setTipo(keep.tp);$('ve').value=keep.v;fillEvents(keep.e);$('ev').value=keep.t;$('fe').value=keep.f}
+  const wasEditing=!!editing;const keep=editing?null:{v:$('ve').value,e:$('es').value,t:$('ev').value,f:$('fe').value,tp:tipo};resetForm();if(keep){setTipo(keep.tp);$('ve').value=keep.v;fillEvents(keep.e);$('ev').value=keep.t;$('fe').value=keep.f;syncDays()}
   saveRec(rec);render(true);
   if(wasEditing)go('turnos');else toast('Turno añadido: '+money(rec.total),'Ver mis turnos',()=>go('turnos'));
 });
@@ -663,12 +681,15 @@ function render(pop){
     return `<li class="item${r.pagado?' paid':''}"><div class="itTop"><div class="ev">${esc(r.evento)}</div><div class="amt">${money(r.total)}</div></div>
     <div class="where">${r.lugar?esc(r.lugar.replace(/ \(antiguo.*\)/,''))+' · ':''}${esc(d)}</div>
     <div class="tags">${r.tipo&&r.tipo!=='evento'?`<span class="chip t-${r.tipo}">${TIPOS[r.tipo]}</span>`:''}<span class="chip">${esc(r.cargoNombre)}</span>${r._arch?'<span class="chip">Historial</span>':''}</div>
-    <div class="how">${r.entrada&&r.salida?esc(r.entrada)+' – '+esc(r.salida)+' · ':''}${fmtHM(recMin(r))} × ${money(r.tarifa)}${r.aux?' + auxilio '+money(r.aux):''}</div>
+    <div class="how">${r.entrada&&r.salida?esc(r.entradaDia&&r.salidaDia&&r.entradaDia!==r.salidaDia?fdShort(r.entradaDia)+' '+r.entrada+' → '+fdShort(r.salidaDia)+' '+r.salida:r.entrada+' – '+r.salida)+' · ':''}${fmtHM(recMin(r))} × ${money(r.tarifa)}${r.aux?' + auxilio '+money(r.aux):''}</div>
     <div class="ops"><button class="link" data-ed="${esc(r.id)}">Editar</button><button class="link" data-del="${esc(r.id)}">Eliminar</button><button class="pay" data-pay="${esc(r.id)}" aria-pressed="${!!r.pagado}">${r.pagado?'✓ Pagado':'Marcar pagado'}</button></div></li>`}).join('')+histBox;
 }
+const fdShort=d=>new Date(d+'T12:00').toLocaleDateString('es-CO',{day:'numeric',month:'short'}).replace('.','');
 function openEdit(r){editing=r.id;fillCargos();
     {const k=r.lugarK&&VENUES[r.lugarK]?r.lugarK:'otro',m=CAT.find(e=>e.v===k&&e.n===r.evento&&e.d===r.fecha);
-     $('ve').value=k;fillEvents(m?m.id:'man');$('ev').value=r.evento}$('fe').value=r.fecha;$('ho').value=minText(recMin(r));$('hin').value=r.entrada||'';$('hout').value=r.salida||'';setHM(r.entrada&&r.salida?'es':'total');$('ca').value=r.cargo;
+     $('ve').value=k;fillEvents(m?m.id:'man');$('ev').value=r.evento}$('fe').value=r.fecha;$('ho').value=minText(recMin(r));$('hin').value=r.entrada||'';$('hout').value=r.salida||'';
+    if(r.entrada&&r.salida){$('din').value=r.entradaDia||r.fecha;$('dout').value=r.salidaDia||(toM(r.salida)<=toM(r.entrada)?addDay(r.entradaDia||r.fecha,1):(r.entradaDia||r.fecha));dinTouched=true;doutTouched=true}
+    setHM(r.entrada&&r.salida?'es':'total');$('ca').value=r.cargo;
     if(r.cargo==='otro'){$('on').value=r.cargoNombre;$('ov').value=r.tarifa}
     else if(r.tarifa!==S.rates[r.cargo]){$('ca').value='otro';$('on').value=r.cargoNombre;$('ov').value=r.tarifa}
     $('ca').onchange();setAux(!!r.aux);setTipo(r.tipo||'evento');$('fTitle').textContent='Editar turno';$('sv').textContent='Guardar cambios';$('cx').classList.remove('hide');
