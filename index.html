@@ -857,7 +857,7 @@ function fly(el,target,done){
   // Forma arrugada: polígono irregular que pasa del rectángulo a una bola
   let seed=(a.top*7+a.left*13)|0;const rnd=()=>{seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff};
   const rectR=t=>{const co=Math.abs(Math.cos(t)),si=Math.abs(Math.sin(t));return Math.min(co>1e-6?cx/co:1e9,si>1e-6?cy/si:1e9)};
-  const M=40,N=12,KF=[],IN=[],WR=[];
+  const M=56,N=32,KF=[],IN=[],WR=[];
   // Ángulos de muestreo: uniformes + las 4 esquinas, para que el primer cuadro sea exactamente la tarjeta
   const ca=Math.atan2(cy,cx),ANG=[...Array.from({length:M},(_,j)=>j/M*Math.PI*2),ca,Math.PI-ca,Math.PI+ca,2*Math.PI-ca].sort((x,y)=>x-y);
   for(let k=0;k<=N;k++){const p=k/N,e=p*p*(3-2*p),amp=k===0?0:.06+.2*Math.sin(Math.PI*Math.min(1,p*1.15))+(p>.85?.1:0);
