@@ -184,8 +184,8 @@ label{margin-bottom:8px}
 .list{gap:16px}
 .listHead{margin-bottom:14px}
 /* iPhone: el campo de fecha tiene un ancho mínimo propio y se salía de la caja */
-input[type=date]{-webkit-appearance:none;appearance:none;display:block;width:100%;max-width:100%;min-width:0;text-align:left}
-input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
+input[type=date],input[type=time]{-webkit-appearance:none;appearance:none;display:block;width:100%;max-width:100%;min-width:0;text-align:left}
+input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and-time-value{text-align:left;margin:0}
 input[type=date]::-webkit-datetime-edit{padding:0}
 .field{min-width:0;max-width:100%}
 .hide{display:none!important}
@@ -249,7 +249,13 @@ input[type=date]::-webkit-datetime-edit{padding:0}
         </fieldset>
         <fieldset class="panel">
           <legend class="step"><span>2</span>¿Cuánto trabajaste?</legend>
-          <div class="field"><label for="ho">Horas trabajadas</label><input id="ho" type="text" placeholder="Ej. 10:45" autocomplete="off" required><div class="hint" id="hoHint">Horas:minutos, p. ej. 8:30</div></div>
+          <div class="field"><label id="hmL">¿Cómo quieres registrar las horas?</label><div class="seg two" id="hmode" role="group" aria-labelledby="hmL">
+            <button type="button" data-hm="total" aria-pressed="true">Total de horas</button><button type="button" data-hm="es" aria-pressed="false">Entrada y salida</button></div></div>
+          <div class="field" id="hoW"><label for="ho">Horas trabajadas</label><input id="ho" type="text" placeholder="Ej. 10:45" autocomplete="off"><div class="hint" id="hoHint">Horas:minutos, p. ej. 8:30</div></div>
+          <div class="field hide" id="esHW"><div class="row2">
+            <div><label for="hin">Hora de entrada</label><input id="hin" type="time"></div>
+            <div><label for="hout">Hora de salida</label><input id="hout" type="time"></div></div>
+            <div class="hint" id="esHint">Si sales después de medianoche, se cuenta como el día siguiente.</div></div>
           <div class="field"><label for="ca">Cargo</label><select id="ca"></select></div>
           <div class="row2 hide" id="otroW">
             <div class="field"><label for="on">Nombre del cargo</label><input id="on" placeholder="Ej. Logística"></div>
@@ -420,7 +426,7 @@ document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(!
 window.addEventListener('hashchange',()=>go(location.hash==='#turnos'?'turnos':'anadir',true));
 function enterApp(){
   $('vLogin').classList.add('hide');$('vApp').classList.remove('hide');$('who').textContent=user;
-  resetForm();render();go(location.hash==='#turnos'?'turnos':'anadir');
+  try{setHM(localStorage.getItem('horas_hm')||'total')}catch(e){setHM('total')}resetForm();render();go(location.hash==='#turnos'?'turnos':'anadir');
 }
 $('out').onclick=()=>{if(auth)signOut(auth);setMode('in')};
 
@@ -440,8 +446,18 @@ function parseHM(v){v=String(v||'').trim().toLowerCase().replace(/\s+/g,'').repl
 function fmtHM(min){min=Math.round(min||0);const h=Math.floor(min/60),m=min%60;return h&&m?`${h} h ${m} min`:h?`${h} h`:`${m} min`}
 const recMin=r=>Number.isFinite(+r.minutos)?+r.minutos:Math.round((+r.horas||0)*60);
 const minText=min=>{const h=Math.floor(min/60),m=min%60;return m?h+':'+String(m).padStart(2,'0'):String(h)};
-function calc(){const mins=parseHM($('ho').value),ok=Number.isFinite(mins),h=ok?mins/60:0,r=rate(),a=auxOn()?(+S.aux||0):0;$('auxV').textContent='+ '+money(S.aux);
+let hm='total';
+const toM=v=>{const m=/^(\d{1,2}):(\d{2})/.exec(v||'');return m?(+m[1])*60+(+m[2]):NaN};
+function esMins(){const a=toM($('hin').value),b=toM($('hout').value);if(!Number.isFinite(a)||!Number.isFinite(b))return NaN;let d=b-a;if(d<=0)d+=1440;return d}
+function getMins(){return hm==='es'?esMins():parseHM($('ho').value)}
+function setHM(m){hm=m==='es'?'es':'total';$('hmode').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.hm===hm));
+  $('hoW').classList.toggle('hide',hm==='es');$('esHW').classList.toggle('hide',hm!=='es');try{localStorage.setItem('horas_hm',hm)}catch(e){}calc()}
+$('hmode').addEventListener('click',e=>{const b=e.target.closest('[data-hm]');if(b)setHM(b.dataset.hm)});
+['hin','hout'].forEach(i=>$(i).addEventListener('input',()=>calc()));
+function calc(){const mins=getMins(),ok=Number.isFinite(mins),h=ok?mins/60:0,r=rate(),a=auxOn()?(+S.aux||0):0;$('auxV').textContent='+ '+money(S.aux);
   $('hoHint').textContent=$('ho').value.trim()?(ok?'= '+fmtHM(mins)+(mins%60?' ('+h.toLocaleString('es-CO',{maximumFractionDigits:2})+' h)':''):'Escribe horas:minutos, p. ej. 10:45'):'Horas:minutos, p. ej. 8:30';
+  if(hm==='es'){const a=toM($('hin').value),b=toM($('hout').value);
+    $('esHint').textContent=ok?`= ${fmtHM(mins)} trabajadas`+(b<=a?' (sales al día siguiente)':''):'Si sales después de medianoche, se cuenta como el día siguiente.'}
   $('calcTxt').textContent=`${ok?fmtHM(mins):'0 h'} × ${money(r)}`+(a?` + auxilio ${money(a)}`:'');$('calc').textContent=money(Math.round(mins*r/60||0)+a)}
 $('ca').onchange=()=>{$('otroW').classList.toggle('hide',$('ca').value!=='otro');calc()};
 ['ho','ov'].forEach(i=>$(i).addEventListener('input',calc));
@@ -465,18 +481,20 @@ let tipo='evento';
 function setTipo(t){tipo=TIPOS[t]?t:'evento';$('tipo').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===tipo))}
 $('tipo').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(b)setTipo(b.dataset.t)});
 function resetForm(){editing=null;fillCargos();$('fTitle').textContent='Añadir turno';$('sv').textContent='Añadir';$('cx').classList.add('hide');
-  $('ev').value='';$('ho').value='';$('on').value='';$('ov').value='';$('fe').value=today();$('ferr').textContent='';setAux(false);setTipo('evento');
+  $('ev').value='';$('ho').value='';$('hin').value='';$('hout').value='';$('on').value='';$('ov').value='';$('fe').value=today();$('ferr').textContent='';setAux(false);setTipo('evento');
   $('ca').value=$('ca').value||'acreditador';$('ca').onchange();fillEvents()}
 $('cx').onclick=()=>{const w=!!editing;resetForm();if(w)go('turnos')};
 
 $('fRec').addEventListener('submit',e=>{
   e.preventDefault();const err=$('ferr');err.textContent='';
-  const ce=curEvent(),ev=ce.evento,mins=parseHM($('ho').value),h=mins/60,c=$('ca').value,r=rate();
+  const ce=curEvent(),ev=ce.evento,mins=getMins(),h=mins/60,c=$('ca').value,r=rate();
   if(!ev){err.textContent='Escribe el nombre del evento.';return}
+  if(hm==='es'&&(!$('hin').value||!$('hout').value)){err.textContent='Escribe la hora de entrada y la de salida.';return}
+  if(hm==='es'&&$('hin').value===$('hout').value){err.textContent='La hora de entrada y la de salida no pueden ser iguales.';return}
   if(!(mins>0)||mins>48*60){err.textContent='Escribe las horas trabajadas como horas:minutos, por ejemplo 10:45.';return}
   if(c==='otro'&&!(r>0)){err.textContent='Ingresa el valor por hora del cargo.';return}
   const rec={id:editing||(Date.now().toString(36)+Math.random().toString(36).slice(2,6)),evento:ev,tipo,lugar:ce.lugar,lugarK:ce.lugarK,fecha:$('fe').value||today(),
-    cargo:c,cargoNombre:c==='otro'?($('on').value.trim()||'Otro'):NAMES[c],tarifa:r,minutos:mins,horas:Math.round(h*10000)/10000,aux:auxOn()?(+S.aux||0):0};rec.total=Math.round(mins*r/60)+rec.aux;
+    cargo:c,cargoNombre:c==='otro'?($('on').value.trim()||'Otro'):NAMES[c],tarifa:r,minutos:mins,horas:Math.round(h*10000)/10000,aux:auxOn()?(+S.aux||0):0};if(hm==='es'){rec.entrada=$('hin').value;rec.salida=$('hout').value}rec.total=Math.round(mins*r/60)+rec.aux;
   if(editing){const prev=S.records.find(x=>x.id===editing)||findRec(editing);if(prev&&prev.pagado){rec.pagado=true;rec.pagadoEl=prev.pagadoEl}const i=S.records.findIndex(x=>x.id===editing);if(i>=0)S.records[i]=rec;else S.records.push(rec)}else S.records.push(rec);
   const wasEditing=!!editing;const keep=editing?null:{v:$('ve').value,e:$('es').value,t:$('ev').value,f:$('fe').value,tp:tipo};resetForm();if(keep){setTipo(keep.tp);$('ve').value=keep.v;fillEvents(keep.e);$('ev').value=keep.t;$('fe').value=keep.f}
   saveRec(rec);render(true);
@@ -578,12 +596,12 @@ function render(pop){
     return `<li class="item${r.pagado?' paid':''}"><div class="itTop"><div class="ev">${esc(r.evento)}</div><div class="amt">${money(r.total)}</div></div>
     <div class="where">${r.lugar?esc(r.lugar.replace(/ \(antiguo.*\)/,''))+' · ':''}${esc(d)}</div>
     <div class="tags">${r.tipo&&r.tipo!=='evento'?`<span class="chip t-${r.tipo}">${TIPOS[r.tipo]}</span>`:''}<span class="chip">${esc(r.cargoNombre)}</span>${r._arch?'<span class="chip">Historial</span>':''}</div>
-    <div class="how">${fmtHM(recMin(r))} × ${money(r.tarifa)}${r.aux?' + auxilio '+money(r.aux):''}</div>
+    <div class="how">${r.entrada&&r.salida?esc(r.entrada)+' – '+esc(r.salida)+' · ':''}${fmtHM(recMin(r))} × ${money(r.tarifa)}${r.aux?' + auxilio '+money(r.aux):''}</div>
     <div class="ops"><button class="link" data-ed="${esc(r.id)}">Editar</button><button class="link" data-del="${esc(r.id)}">Eliminar</button><button class="pay" data-pay="${esc(r.id)}" aria-pressed="${!!r.pagado}">${r.pagado?'✓ Pagado':'Marcar pagado'}</button></div></li>`}).join('')+histBox;
 }
 function openEdit(r){editing=r.id;fillCargos();
     {const k=r.lugarK&&VENUES[r.lugarK]?r.lugarK:'otro',m=CAT.find(e=>e.v===k&&e.n===r.evento&&e.d===r.fecha);
-     $('ve').value=k;fillEvents(m?m.id:'man');$('ev').value=r.evento}$('fe').value=r.fecha;$('ho').value=minText(recMin(r));$('ca').value=r.cargo;
+     $('ve').value=k;fillEvents(m?m.id:'man');$('ev').value=r.evento}$('fe').value=r.fecha;$('ho').value=minText(recMin(r));$('hin').value=r.entrada||'';$('hout').value=r.salida||'';setHM(r.entrada&&r.salida?'es':'total');$('ca').value=r.cargo;
     if(r.cargo==='otro'){$('on').value=r.cargoNombre;$('ov').value=r.tarifa}
     else if(r.tarifa!==S.rates[r.cargo]){$('ca').value='otro';$('on').value=r.cargoNombre;$('ov').value=r.tarifa}
     $('ca').onchange();setAux(!!r.aux);setTipo(r.tipo||'evento');$('fTitle').textContent='Editar turno';$('sv').textContent='Guardar cambios';$('cx').classList.remove('hide');
