@@ -861,13 +861,13 @@ function fly(el,target,done){
   // Ángulos de muestreo: uniformes + las 4 esquinas, para que el primer cuadro sea exactamente la tarjeta
   const ca=Math.atan2(cy,cx),ANG=[...Array.from({length:M},(_,j)=>j/M*Math.PI*2),ca,Math.PI-ca,Math.PI+ca,2*Math.PI-ca].sort((x,y)=>x-y);
   for(let k=0;k<=N;k++){const p=k/N,e=p*p*(3-2*p),amp=k===0?0:.06+.2*Math.sin(Math.PI*Math.min(1,p*1.15))+(p>.85?.1:0);
-    const ox=(rnd()-.5)*6*Math.sin(Math.PI*p),oy=(rnd()-.5)*6*Math.sin(Math.PI*p),pts=[];
+    const ox=0,oy=0,pts=[];
     for(let j=0;j<ANG.length;j++){const t=ANG[j]+(k?(rnd()-.5)*.08:0);let rr=rectR(t)*(1-e)+R*e;rr*=1+amp*(rnd()*2-1);
       pts.push((cx+ox+rr*Math.cos(t)).toFixed(1)+'px '+(cy+oy+rr*Math.sin(t)).toFixed(1)+'px')}
-    const rot=k?Math.sin(p*Math.PI*2.2)*6*(1-p)+p*18:0,sq=k?1+Math.sin(p*Math.PI*3)*.03:1;
-    KF.push({clipPath:`polygon(${pts.join(',')})`,transform:`rotate(${rot.toFixed(1)}deg) scale(${sq.toFixed(3)})`});
+    
+    KF.push({clipPath:`polygon(${pts.join(',')})`});
     const s=1-(1-(2.2*R)/Math.max(W,H))*e;
-    IN.push({transform:`scale(${s.toFixed(3)}) rotate(${((rnd()-.5)*8*p).toFixed(1)}deg)`,opacity:(1-.45*e).toFixed(2)});
+    IN.push({transform:`scale(${s.toFixed(3)})`,opacity:(1-.45*e).toFixed(2)});
     WR.push({opacity:(Math.min(1,p*1.6)*.75).toFixed(2)})}
   const DUR=1000,EZ='cubic-bezier(.35,.05,.35,1)';
   const crumple=c.animate(KF,{duration:DUR,easing:EZ,fill:'forwards'});
