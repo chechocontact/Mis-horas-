@@ -857,7 +857,7 @@ function fly(el,target,done){
   // Forma arrugada: polígono irregular que pasa del rectángulo a una bola
   let seed=(a.top*7+a.left*13)|0;const rnd=()=>{seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff};
   const rectR=t=>{const co=Math.abs(Math.cos(t)),si=Math.abs(Math.sin(t));return Math.min(co>1e-6?cx/co:1e9,si>1e-6?cy/si:1e9)};
-  const M=30,N=11,KF=[],IN=[],WR=[];
+  const M=34,N=26,KF=[],IN=[],WR=[];
   for(let k=0;k<=N;k++){const p=k/N,e=p*p*(3-2*p),amp=k===0?0:.06+.2*Math.sin(Math.PI*Math.min(1,p*1.15))+(p>.85?.1:0);
     const ox=(rnd()-.5)*6*Math.sin(Math.PI*p),oy=(rnd()-.5)*6*Math.sin(Math.PI*p),pts=[];
     for(let j=0;j<M;j++){const t=j/M*Math.PI*2+(k?(rnd()-.5)*.12:0);let rr=rectR(t)*(1-e)+R*e;rr*=1+amp*(rnd()*2-1);
@@ -867,12 +867,12 @@ function fly(el,target,done){
     const s=1-(1-(2.2*R)/Math.max(W,H))*e;
     IN.push({transform:`scale(${s.toFixed(3)}) rotate(${((rnd()-.5)*8*p).toFixed(1)}deg)`,opacity:(1-.45*e).toFixed(2),easing:'steps(1,end)'});
     WR.push({opacity:(Math.min(1,p*1.6)*.75).toFixed(2),easing:'steps(1,end)'})}
-  const DUR=1000;
+  const DUR=1200;
   const crumple=c.animate(KF,{duration:DUR,fill:'forwards'});
   inner.animate(IN,{duration:DUR,fill:'forwards'});wr.animate(WR,{duration:DUR,fill:'forwards'});
   // El espacio de la tarjeta en la lista se cierra mientras se arruga
   const cs=getComputedStyle(el),h=el.offsetHeight;
-  el.animate([{height:h+'px',paddingTop:cs.paddingTop,paddingBottom:cs.paddingBottom},{height:'0px',paddingTop:'0px',paddingBottom:'0px'}],{duration:420,delay:1000,easing:'ease-in-out',fill:'forwards'});
+  el.animate([{height:h+'px',paddingTop:cs.paddingTop,paddingBottom:cs.paddingBottom},{height:'0px',paddingTop:'0px',paddingBottom:'0px'}],{duration:420,delay:1200,easing:'ease-in-out',fill:'forwards'});
   let ended=false;const end=()=>{if(ended)return;ended=true;wrap.remove();
     target.animate([{transform:'scale(1)'},{transform:'scale(1.12)'},{transform:'scale(.97)'},{transform:'scale(1)'}],{duration:380,easing:'ease-out'});done()};
   // Lanzar: solo cuando ya es una bola, sale en arco, girando y alejándose, hacia el botón del menú
