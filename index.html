@@ -242,6 +242,9 @@ input[type=date]::-webkit-datetime-edit{padding:0}
 .esGrp label{font-size:13px;margin-bottom:6px}
 .esGrp .row2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:10px}
 .esGrp input{background:var(--card)!important}
+.panel .aux[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.totalBox .calc{gap:12px}.totalBox .calc>div{flex:1;min-width:0}
+.totalBox .calc b{font-size:clamp(22px,7vw,30px);flex:none}
 .hide{display:none!important}
 .status{font-size:13px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(prefers-reduced-motion:no-preference){.cred .big{transition:transform .2s}.cred .big.pop{transform:scale(1.04)}}
@@ -312,11 +315,19 @@ input[type=date]::-webkit-datetime-edit{padding:0}
           <div class="field hide" id="evW"><label for="ev">Nombre del evento</label><input id="ev" list="evList" placeholder="Ej. Feria empresarial"><datalist id="evList"></datalist></div>
           <div class="field"><label id="tipoL">Tipo de turno</label><div class="seg" id="tipo" role="group" aria-labelledby="tipoL">
             <button type="button" data-t="evento" aria-pressed="true">Evento</button><button type="button" data-t="montaje" aria-pressed="false">Montaje</button><button type="button" data-t="desmontaje" aria-pressed="false">Desmontaje</button></div></div>
-          <div class="field last"><label for="fe">Fecha</label><input id="fe" type="date" required><div class="hint" id="feHint"></div></div>
+          <div class="field last" id="feW"><label for="fe">Fecha</label><input id="fe" type="date"><div class="hint" id="feHint"></div></div>
         </fieldset>
         <fieldset class="panel">
           <legend class="step"><span>2</span>¿Cuánto trabajaste?</legend>
-          <div class="field"><label id="hmL">¿Cómo quieres registrar las horas?</label><div class="seg two" id="hmode" role="group" aria-labelledby="hmL">
+          <div class="field hide" id="rgW">
+            <div class="esGrp"><div class="esT">Días de trabajo</div><div class="row2">
+              <div><label for="rd1">Desde</label><input id="rd1" type="date"></div>
+              <div><label for="rd2">Hasta</label><input id="rd2" type="date"></div></div></div>
+            <div class="esGrp"><div class="esT">Horario de cada día</div><div class="row2">
+              <div><label for="rh1">Entrada</label><input id="rh1" type="time"></div>
+              <div><label for="rh2">Salida</label><input id="rh2" type="time"></div></div></div>
+            <div class="hint" id="rgHint">Pon el primer y el último día, y el horario que trabajaste cada día.</div></div>
+          <div class="field" id="hmF"><label id="hmL">¿Cómo quieres registrar las horas?</label><div class="seg two" id="hmode" role="group" aria-labelledby="hmL">
             <button type="button" data-hm="total" aria-pressed="true">Total de horas</button><button type="button" data-hm="es" aria-pressed="false">Entrada y salida</button></div></div>
           <div class="field" id="hoW"><label for="ho">Horas trabajadas</label><input id="ho" type="text" placeholder="Ej. 10:45" autocomplete="off"><div class="hint" id="hoHint">Horas:minutos, p. ej. 8:30</div></div>
           <div class="field hide" id="esHW">
@@ -533,17 +544,29 @@ function esMins(){const a=dt($('din').value,$('hin').value),b=dt($('dout').value
 function autoOut(){const di=$('din').value;if(!di||doutTouched)return;const a=toM($('hin').value),b=toM($('hout').value);
   $('dout').value=(Number.isFinite(a)&&Number.isFinite(b)&&b<=a)?addDay(di,1):di}
 function syncDays(){const f=$('fe').value;if(f&&!dinTouched&&$('din').value!==f){$('din').value=f;doutTouched=false}autoOut()}
-function getMins(){return hm==='es'?esMins():parseHM($('ho').value)}
+function getMins(){return isRange()?rgMins():hm==='es'?esMins():parseHM($('ho').value)}
 function setHM(m){hm=m==='es'?'es':'total';$('hmode').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.hm===hm));
-  $('hoW').classList.toggle('hide',hm==='es');$('esHW').classList.toggle('hide',hm!=='es');try{localStorage.setItem('horas_hm',hm)}catch(e){}calc()}
+  try{localStorage.setItem('horas_hm',hm)}catch(e){}applyTipo()}
 $('hmode').addEventListener('click',e=>{const b=e.target.closest('[data-hm]');if(b)setHM(b.dataset.hm)});
 ['hin','hout'].forEach(i=>['input','change','blur'].forEach(ev=>$(i).addEventListener(ev,()=>{autoOut();calc()})));
 ['input','change'].forEach(ev=>{$('din').addEventListener(ev,()=>{dinTouched=true;autoOut();calc()});$('dout').addEventListener(ev,()=>{doutTouched=true;calc()});$('fe').addEventListener(ev,()=>{syncDays();calc()})});
-function calc(){const mins=getMins(),ok=Number.isFinite(mins),h=ok?mins/60:0,r=rate(),a=auxOn()?(+S.aux||0):0;$('auxV').textContent='+ '+money(S.aux);
+// Montaje y desmontaje: rango de días con el mismo horario cada día.
+const isRange=()=>tipo==='montaje'||tipo==='desmontaje';
+function rgDays(){const a=$('rd1').value,b=$('rd2').value;if(!a||!b)return NaN;const [y1,m1,d1]=a.split('-').map(Number),[y2,m2,d2]=b.split('-').map(Number);return Math.round((Date.UTC(y2,m2-1,d2)-Date.UTC(y1,m1-1,d1))/864e5)+1}
+function rgDaily(){const a=toM($('rh1').value),b=toM($('rh2').value);if(!Number.isFinite(a)||!Number.isFinite(b))return NaN;let d=b-a;if(d<=0)d+=1440;return d}
+function rgMins(){const n=rgDays(),d=rgDaily();return n>0&&d>0?n*d:NaN}
+const auxDays=()=>isRange()?Math.max(1,rgDays()||1):1;
+function applyTipo(){const rg=isRange();$('rgW').classList.toggle('hide',!rg);$('hmF').classList.toggle('hide',rg);$('feW').classList.toggle('hide',rg);
+  $('hoW').classList.toggle('hide',rg||hm==='es');$('esHW').classList.toggle('hide',rg||hm!=='es');
+  if(rg&&!$('rd1').value){const f=$('fe').value||today();$('rd1').value=f;$('rd2').value=f}calc()}
+['rd1','rd2','rh1','rh2'].forEach(i=>['input','change','blur'].forEach(ev=>$(i).addEventListener(ev,()=>{if(i==='rd1'&&$('rd2').value&&$('rd2').value<$('rd1').value)$('rd2').value=$('rd1').value;calc()})));
+function calc(){const mins=getMins(),ok=Number.isFinite(mins),h=ok?mins/60:0,r=rate(),nd=auxDays(),a=auxOn()?(+S.aux||0)*nd:0;$('auxV').textContent='+ '+money(S.aux)+(isRange()?' por día':'');
+  if(isRange()){const n=rgDays(),d=rgDaily();
+    $('rgHint').textContent=n<1?'El último día debe ser igual o después del primero.':(n>0&&d>0)?`= ${n} ${n===1?'día':'días'} × ${fmtHM(d)} = ${fmtHM(n*d)} trabajadas`:'Pon el primer y el último día, y el horario que trabajaste cada día.'}
   $('hoHint').textContent=$('ho').value.trim()?(ok?'= '+fmtHM(mins)+(mins%60?' ('+h.toLocaleString('es-CO',{maximumFractionDigits:2})+' h)':''):'Escribe horas:minutos, p. ej. 10:45'):'Horas:minutos, p. ej. 8:30';
   if(hm==='es'){const nd=$('dout').value&&$('din').value&&$('dout').value!==$('din').value;
     $('esHint').textContent=Number.isFinite(mins)&&mins<=0?'La salida debe ser después de la entrada.':ok?`= ${fmtHM(mins)} trabajadas`+(nd?' (sales otro día)':''):'Si sales después de medianoche, el día de salida pasa solo al día siguiente.'}
-  $('calcTxt').textContent=`${ok?fmtHM(mins):'0 h'} × ${money(r)}`+(a?` + auxilio ${money(a)}`:'');$('calc').textContent=money(Math.round(mins*r/60||0)+a)}
+  $('calcTxt').textContent=`${ok?fmtHM(mins):'0 h'} × ${money(r)}`+(a?` + auxilio ${nd>1?nd+' × '+money(S.aux):money(a)}`:'');$('calc').textContent=money(Math.round(mins*r/60||0)+a)}
 $('ca').onchange=()=>{$('otroW').classList.toggle('hide',$('ca').value!=='otro');calc()};
 ['ho','ov'].forEach(i=>$(i).addEventListener('input',calc));
 function today(){const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)}
@@ -563,10 +586,10 @@ function curEvent(){const v=$('ve').value,man=v==='otro'||$('es').value==='man';
   return {evento:man?$('ev').value.trim():e.n,lugar:v==='otro'?'':VENUES[v],lugarK:v}}
 const TIPOS={evento:'Evento',montaje:'Montaje',desmontaje:'Desmontaje'};
 let tipo='evento';
-function setTipo(t){tipo=TIPOS[t]?t:'evento';$('tipo').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===tipo))}
+function setTipo(t){tipo=TIPOS[t]?t:'evento';$('tipo').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===tipo));applyTipo()}
 $('tipo').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(b)setTipo(b.dataset.t)});
 function resetForm(){editing=null;fillCargos();$('fTitle').textContent='Añadir turno';$('sv').textContent='Añadir';$('cx').classList.add('hide');
-  $('ev').value='';$('ho').value='';$('hin').value='';$('hout').value='';dinTouched=false;doutTouched=false;$('din').value='';$('dout').value='';$('on').value='';$('ov').value='';$('fe').value=today();$('ferr').textContent='';setAux(false);setTipo('evento');
+  $('ev').value='';$('ho').value='';$('hin').value='';$('hout').value='';dinTouched=false;doutTouched=false;$('din').value='';$('dout').value='';$('rd1').value='';$('rd2').value='';$('rh1').value='';$('rh2').value='';$('on').value='';$('ov').value='';$('fe').value=today();$('ferr').textContent='';setAux(false);setTipo('evento');
   $('ca').value=$('ca').value||'acreditador';$('ca').onchange();fillEvents()}
 $('cx').onclick=()=>{const w=!!editing;resetForm();if(w)go('turnos')};
 
@@ -574,12 +597,18 @@ $('fRec').addEventListener('submit',e=>{
   e.preventDefault();const err=$('ferr');err.textContent='';
   const ce=curEvent(),ev=ce.evento,mins=getMins(),h=mins/60,c=$('ca').value,r=rate();
   if(!ev){err.textContent='Escribe el nombre del evento.';return}
-  if(hm==='es'&&(!$('din').value||!$('hin').value||!$('dout').value||!$('hout').value)){err.textContent='Escribe el día y la hora de entrada y de salida.';return}
-  if(hm==='es'&&!(mins>0)){err.textContent='La salida debe ser después de la entrada.';return}
-  if(!(mins>0)||mins>48*60){err.textContent='Escribe las horas trabajadas como horas:minutos, por ejemplo 10:45.';return}
+  if(isRange()){
+    if(!$('rd1').value||!$('rd2').value||!$('rh1').value||!$('rh2').value){err.textContent='Pon el primer y el último día, y la hora de entrada y salida de cada día.';return}
+    const n=rgDays();if(!(n>=1)){err.textContent='El último día debe ser igual o después del primero.';return}
+    if(n>31){err.textContent='El rango no puede ser de más de 31 días.';return}
+    if($('rh1').value===$('rh2').value){err.textContent='La hora de entrada y la de salida no pueden ser iguales.';return}
+  }
+  if(!isRange()&&hm==='es'&&(!$('din').value||!$('hin').value||!$('dout').value||!$('hout').value)){err.textContent='Escribe el día y la hora de entrada y de salida.';return}
+  if(!isRange()&&hm==='es'&&!(mins>0)){err.textContent='La salida debe ser después de la entrada.';return}
+  if(!(mins>0)||(!isRange()&&mins>48*60)){err.textContent='Escribe las horas trabajadas como horas:minutos, por ejemplo 10:45.';return}
   if(c==='otro'&&!(r>0)){err.textContent='Ingresa el valor por hora del cargo.';return}
   const rec={id:editing||(Date.now().toString(36)+Math.random().toString(36).slice(2,6)),evento:ev,tipo,lugar:ce.lugar,lugarK:ce.lugarK,fecha:$('fe').value||today(),
-    cargo:c,cargoNombre:c==='otro'?($('on').value.trim()||'Otro'):NAMES[c],tarifa:r,minutos:mins,horas:Math.round(h*10000)/10000,aux:auxOn()?(+S.aux||0):0};if(hm==='es'){rec.entrada=$('hin').value;rec.salida=$('hout').value;rec.entradaDia=$('din').value;rec.salidaDia=$('dout').value}rec.total=Math.round(mins*r/60)+rec.aux;
+    cargo:c,cargoNombre:c==='otro'?($('on').value.trim()||'Otro'):NAMES[c],tarifa:r,minutos:mins,horas:Math.round(h*10000)/10000,aux:auxOn()?(+S.aux||0)*auxDays():0};if(isRange()){rec.fecha=$('rd1').value;rec.rango={desde:$('rd1').value,hasta:$('rd2').value,entrada:$('rh1').value,salida:$('rh2').value,dias:rgDays(),diario:rgDaily()}}else if(hm==='es'){rec.entrada=$('hin').value;rec.salida=$('hout').value;rec.entradaDia=$('din').value;rec.salidaDia=$('dout').value}rec.total=Math.round(mins*r/60)+rec.aux;
   if(editing){const prev=S.records.find(x=>x.id===editing)||findRec(editing);if(prev&&prev.pagado){rec.pagado=true;rec.pagadoEl=prev.pagadoEl}const i=S.records.findIndex(x=>x.id===editing);if(i>=0)S.records[i]=rec;else S.records.push(rec)}else S.records.push(rec);
   const wasEditing=!!editing;const keep=editing?null:{v:$('ve').value,e:$('es').value,t:$('ev').value,f:$('fe').value,tp:tipo};resetForm();if(keep){setTipo(keep.tp);$('ve').value=keep.v;fillEvents(keep.e);$('ev').value=keep.t;$('fe').value=keep.f;syncDays()}
   saveRec(rec);render(true);
@@ -681,7 +710,7 @@ function render(pop){
     return `<li class="item${r.pagado?' paid':''}"><div class="itTop"><div class="ev">${esc(r.evento)}</div><div class="amt">${money(r.total)}</div></div>
     <div class="where">${r.lugar?esc(r.lugar.replace(/ \(antiguo.*\)/,''))+' · ':''}${esc(d)}</div>
     <div class="tags">${r.tipo&&r.tipo!=='evento'?`<span class="chip t-${r.tipo}">${TIPOS[r.tipo]}</span>`:''}<span class="chip">${esc(r.cargoNombre)}</span>${r._arch?'<span class="chip">Historial</span>':''}</div>
-    <div class="how">${r.entrada&&r.salida?esc(r.entradaDia&&r.salidaDia&&r.entradaDia!==r.salidaDia?fdShort(r.entradaDia)+' '+r.entrada+' → '+fdShort(r.salidaDia)+' '+r.salida:r.entrada+' – '+r.salida)+' · ':''}${fmtHM(recMin(r))} × ${money(r.tarifa)}${r.aux?' + auxilio '+money(r.aux):''}</div>
+    <div class="how">${r.rango?esc(fdShort(r.rango.desde)+(r.rango.hasta!==r.rango.desde?' – '+fdShort(r.rango.hasta):'')+' · '+r.rango.dias+(r.rango.dias===1?' día':' días')+' de '+r.rango.entrada+' a '+r.rango.salida)+' · ':r.entrada&&r.salida?esc(r.entradaDia&&r.salidaDia&&r.entradaDia!==r.salidaDia?fdShort(r.entradaDia)+' '+r.entrada+' → '+fdShort(r.salidaDia)+' '+r.salida:r.entrada+' – '+r.salida)+' · ':''}${fmtHM(recMin(r))} × ${money(r.tarifa)}${r.aux?' + auxilio '+(r.rango&&r.rango.dias>1&&r.aux===r.rango.dias*(+S.aux||0)?r.rango.dias+' × '+money(S.aux):money(r.aux)):''}</div>
     <div class="ops"><button class="link" data-ed="${esc(r.id)}">Editar</button><button class="link" data-del="${esc(r.id)}">Eliminar</button><button class="pay" data-pay="${esc(r.id)}" aria-pressed="${!!r.pagado}">${r.pagado?'✓ Pagado':'Marcar pagado'}</button></div></li>`}).join('')+histBox;
 }
 const fdShort=d=>new Date(d+'T12:00').toLocaleDateString('es-CO',{day:'numeric',month:'short'}).replace('.','');
@@ -689,7 +718,8 @@ function openEdit(r){editing=r.id;fillCargos();
     {const k=r.lugarK&&VENUES[r.lugarK]?r.lugarK:'otro',m=CAT.find(e=>e.v===k&&e.n===r.evento&&e.d===r.fecha);
      $('ve').value=k;fillEvents(m?m.id:'man');$('ev').value=r.evento}$('fe').value=r.fecha;$('ho').value=minText(recMin(r));$('hin').value=r.entrada||'';$('hout').value=r.salida||'';
     if(r.entrada&&r.salida){$('din').value=r.entradaDia||r.fecha;$('dout').value=r.salidaDia||(toM(r.salida)<=toM(r.entrada)?addDay(r.entradaDia||r.fecha,1):(r.entradaDia||r.fecha));dinTouched=true;doutTouched=true}
-    setHM(r.entrada&&r.salida?'es':'total');$('ca').value=r.cargo;
+    setHM(r.entrada&&r.salida?'es':'total');
+    {const g=r.rango||{};$('rd1').value=g.desde||r.fecha||'';$('rd2').value=g.hasta||g.desde||r.fecha||'';$('rh1').value=g.entrada||r.entrada||'';$('rh2').value=g.salida||r.salida||''}$('ca').value=r.cargo;
     if(r.cargo==='otro'){$('on').value=r.cargoNombre;$('ov').value=r.tarifa}
     else if(r.tarifa!==S.rates[r.cargo]){$('ca').value='otro';$('on').value=r.cargoNombre;$('ov').value=r.tarifa}
     $('ca').onchange();setAux(!!r.aux);setTipo(r.tipo||'evento');$('fTitle').textContent='Editar turno';$('sv').textContent='Guardar cambios';$('cx').classList.remove('hide');
