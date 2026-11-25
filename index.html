@@ -453,7 +453,7 @@ function getMins(){return hm==='es'?esMins():parseHM($('ho').value)}
 function setHM(m){hm=m==='es'?'es':'total';$('hmode').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.hm===hm));
   $('hoW').classList.toggle('hide',hm==='es');$('esHW').classList.toggle('hide',hm!=='es');try{localStorage.setItem('horas_hm',hm)}catch(e){}calc()}
 $('hmode').addEventListener('click',e=>{const b=e.target.closest('[data-hm]');if(b)setHM(b.dataset.hm)});
-['hin','hout'].forEach(i=>$(i).addEventListener('input',()=>calc()));
+['hin','hout'].forEach(i=>['input','change','blur'].forEach(ev=>$(i).addEventListener(ev,()=>calc())));
 function calc(){const mins=getMins(),ok=Number.isFinite(mins),h=ok?mins/60:0,r=rate(),a=auxOn()?(+S.aux||0):0;$('auxV').textContent='+ '+money(S.aux);
   $('hoHint').textContent=$('ho').value.trim()?(ok?'= '+fmtHM(mins)+(mins%60?' ('+h.toLocaleString('es-CO',{maximumFractionDigits:2})+' h)':''):'Escribe horas:minutos, p. ej. 10:45'):'Horas:minutos, p. ej. 8:30';
   if(hm==='es'){const a=toM($('hin').value),b=toM($('hout').value);
