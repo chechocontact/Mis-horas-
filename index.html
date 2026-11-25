@@ -859,7 +859,7 @@ function fly(el,target,done){
     for(let j=0;j<ANG.length;j++){const t=ANG[j];let rr=rectR(t)*(1-e)+R*e;
       pts.push((cx+ox+rr*Math.cos(t)).toFixed(1)+'px '+(cy+oy+rr*Math.sin(t)).toFixed(1)+'px')}
     
-    {const D=2*R,w=W+(D-W)*e,h2=H+(D-H)*e,rad=16+(D/2-16)*e;IN.push({transform:`translate(-50%,-50%) scale(${Math.min(w/W,h2/H).toFixed(3)})`,opacity:(1-.35*e).toFixed(2)});KF.push({left:((W-w)/2).toFixed(1)+'px',top:((H-h2)/2).toFixed(1)+'px',width:w.toFixed(1)+'px',height:h2.toFixed(1)+'px',borderRadius:rad.toFixed(1)+'px'})}
+    {const D=2*R,w=W+(D-W)*e,h2=H+(D-H)*e,rad=16+(D/2-16)*e;IN.push({transform:`translate(-50%,-50%) scale(${Math.min(w/W,h2/H).toFixed(3)})`,opacity:Math.max(0,1-e/.7).toFixed(2)});KF.push({left:((W-w)/2).toFixed(1)+'px',top:((H-h2)/2).toFixed(1)+'px',width:w.toFixed(1)+'px',height:h2.toFixed(1)+'px',borderRadius:rad.toFixed(1)+'px'})}
   }
   const DUR=1000,EZ='cubic-bezier(.35,.05,.35,1)';
   const crumple=c.animate(KF,{duration:DUR,easing:EZ,fill:'forwards'});
