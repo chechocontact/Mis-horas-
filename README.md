@@ -35,7 +35,7 @@ Usa **Firebase Authentication** para las cuentas y **Cloud Firestore** para guar
 
 1. Entra a https://dash.cloudflare.com (cuenta gratis) → **Workers y Pages** → **Crear** → pestaña **Pages** → **Conectar a Git** → elige GitHub y el repositorio.
 2. Configuración de compilación: **Framework: Ninguno**, **Comando de compilación: vacío**, **Directorio de salida: `/`** (o déjalo vacío). Pulsa **Guardar e implementar**.
-3. Te da una dirección como `https://mis-horass.pages.dev` (si se crea como Worker: `https://mis-horass.<subdominio>.workers.dev`; actívala en Domains → workers.dev). Dirección actual: `https://mis-horas-d5g.pages.dev`. Cada cambio en GitHub se publica solo (500 publicaciones gratis al mes).
+3. Te da una dirección como `https://mis-horass.pages.dev` (si se crea como Worker: `https://mis-horass.<subdominio>.workers.dev`; actívala en Domains → workers.dev). Dirección actual: `https://mis-horass.pages.dev`. Cada cambio en GitHub se publica solo (500 publicaciones gratis al mes).
 4. Las cabeceras de caché van en el archivo `_headers`.
 5. En Firebase → **Authentication → Configuración → Dominios autorizados**, añade tu dirección `…pages.dev`.
 
