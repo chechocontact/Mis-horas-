@@ -264,14 +264,15 @@ input[type=date]::-webkit-datetime-edit{padding:0}
 @media(max-width:959px){.nav button{white-space:nowrap;padding:0 8px;font-size:15px;gap:6px}.nav .cnt{min-width:20px;height:20px;line-height:20px;font-size:12px;padding:0 5px}}
 .cred.paidV{background:var(--ink);color:var(--bg)}
 .cred.paidV::after{border-color:color-mix(in srgb,var(--bg) 8%,transparent)}
-.flyClone{box-shadow:0 14px 30px rgba(0,0,0,.35);border-radius:16px;overflow:hidden;background:var(--card);border:1px solid var(--edge)}
+.flyWrap{position:fixed;z-index:60;pointer-events:none;filter:drop-shadow(0 10px 14px rgba(0,0,0,.35))}
+.flyClone{position:absolute;inset:0;margin:0!important;border-radius:16px;overflow:hidden}
 .flyInner{position:absolute;inset:0;transform-origin:center}
-.crumple{position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;
-  background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.22),transparent 38%),
-  radial-gradient(circle at 70% 72%,rgba(0,0,0,.38),transparent 55%),
-  repeating-linear-gradient(33deg,rgba(0,0,0,.2) 0 2px,transparent 2px 9px),
-  repeating-linear-gradient(-52deg,rgba(255,255,255,.12) 0 1px,transparent 1px 7px),
-  repeating-linear-gradient(110deg,rgba(0,0,0,.12) 0 1px,transparent 1px 12px),light-dark(#f3f1ea,#d8d4ca)}
+.crumple{position:absolute;inset:0;pointer-events:none;opacity:0;mix-blend-mode:soft-light;
+  background:radial-gradient(circle at 30% 28%,rgba(255,255,255,.35),transparent 40%),
+  radial-gradient(circle at 70% 72%,rgba(0,0,0,.45),transparent 55%),
+  repeating-linear-gradient(33deg,rgba(0,0,0,.45) 0 2px,transparent 2px 10px),
+  repeating-linear-gradient(-52deg,rgba(255,255,255,.4) 0 1px,transparent 1px 8px),
+  repeating-linear-gradient(110deg,rgba(0,0,0,.3) 0 1px,transparent 1px 13px)}
 .item{overflow:hidden}
 .chip.paidOn{color:var(--mut)}
 @media(min-width:960px){.nav .lg{display:inline}.nav .sm{display:none}}
@@ -836,47 +837,55 @@ $('sum').addEventListener('click',e=>{const b=e.target.closest('#bulk');if(!b)re
   holdR++;let left=cards.length||1;const fin=()=>{if(--left<=0){holdR--;render(true)}};
   if(!cards.length)fin();cards.forEach((c,i)=>setTimeout(()=>fly(c,$('nPaid'),fin),i*90));saveMany(ch);
   toast(ids.size+' turnos movidos a Turnos pagados','Ver',()=>go('pagados'))});
-// Animación: la tarjeta se arruga como una hoja de papel hasta quedar hecha una bola,
-// y solo entonces sale lanzada hacia el botón del menú (Turnos pagados o Mis turnos).
+// Animación: la tarjeta se arruga en su sitio como una hoja de papel (cuadro a cuadro, estilo stop motion,
+// con el borde cada vez más irregular) hasta quedar hecha una bola, y solo entonces sale lanzada hacia el
+// botón del menú. La tarjeta conserva siempre su color.
 function fly(el,target,done){
   const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(reduce||!el||!target||!el.animate||!target.getClientRects().length){done();return}
   const a=el.getBoundingClientRect(),b=target.getBoundingClientRect();
+  if(!a.width||!a.height){done();return}
+  const W=a.width,H=a.height,cx=W/2,cy=H/2,R=Math.min(34,Math.min(W,H)/2-4);
+  // Envoltorio sin recorte (para la sombra) y copia de la tarjeta recortada con la forma arrugada
+  const wrap=document.createElement('div');wrap.className='flyWrap';
+  Object.assign(wrap.style,{left:a.left+'px',top:a.top+'px',width:W+'px',height:H+'px'});
   const c=el.cloneNode(true);c.classList.add('flyClone');c.removeAttribute('id');
   const inner=document.createElement('div');inner.className='flyInner';while(c.firstChild)inner.appendChild(c.firstChild);
-  const wr=document.createElement('div');wr.className='crumple';c.append(inner,wr);
-  Object.assign(c.style,{position:'fixed',left:a.left+'px',top:a.top+'px',width:a.width+'px',height:a.height+'px',margin:'0',padding:'0',zIndex:'60',pointerEvents:'none'});
   inner.style.padding=getComputedStyle(el).padding;
-  document.body.appendChild(c);el.style.visibility='hidden';
-  const B=64,cx=a.left+a.width/2,cy=a.top+a.height/2,L=cx-B/2,T=cy-B/2,mid=(p,x,y)=>x+(y-x)*p;
-  const box=p=>({left:mid(p,a.left,L)+'px',top:mid(p,a.top,T)+'px',width:mid(p,a.width,B)+'px',height:mid(p,a.height,B)+'px'});
-  // 1) Arrugar: se dobla, se tuerce y se encoge hasta ser una bola
-  const crumple=c.animate([
-    {...box(0),borderRadius:'16px',transform:'rotate(0deg) skew(0deg,0deg)'},
-    {...box(.22),borderRadius:'20px',transform:'rotate(-5deg) skew(6deg,-4deg)',offset:.2},
-    {...box(.5),borderRadius:'34%',transform:'rotate(9deg) skew(-10deg,7deg)',offset:.45},
-    {...box(.78),borderRadius:'44%',transform:'rotate(-14deg) skew(8deg,-9deg)',offset:.7},
-    {...box(.95),borderRadius:'48%',transform:'rotate(18deg) skew(-4deg,4deg) scale(1.08)',offset:.88},
-    {...box(1),borderRadius:'50%',transform:'rotate(24deg) skew(0deg,0deg) scale(1)'}],
-    {duration:700,easing:'cubic-bezier(.3,.1,.3,1)',fill:'forwards'});
-  inner.animate([{opacity:1,transform:'scale(1)'},{opacity:.55,transform:'scale(.92) rotate(-2deg)',offset:.35},{opacity:0,transform:'scale(.7) rotate(6deg)'}],{duration:520,easing:'ease-in',fill:'forwards'});
-  wr.animate([{opacity:0},{opacity:.6,offset:.4},{opacity:1}],{duration:700,easing:'ease-out',fill:'forwards'});
+  const wr=document.createElement('div');wr.className='crumple';c.append(inner,wr);wrap.appendChild(c);
+  document.body.appendChild(wrap);el.style.visibility='hidden';
+  // Forma arrugada: polígono irregular que pasa del rectángulo a una bola
+  let seed=(a.top*7+a.left*13)|0;const rnd=()=>{seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff};
+  const rectR=t=>{const co=Math.abs(Math.cos(t)),si=Math.abs(Math.sin(t));return Math.min(co>1e-6?cx/co:1e9,si>1e-6?cy/si:1e9)};
+  const M=30,N=11,KF=[],IN=[],WR=[];
+  for(let k=0;k<=N;k++){const p=k/N,e=p*p*(3-2*p),amp=k===0?0:.06+.2*Math.sin(Math.PI*Math.min(1,p*1.15))+(p>.85?.1:0);
+    const ox=(rnd()-.5)*6*Math.sin(Math.PI*p),oy=(rnd()-.5)*6*Math.sin(Math.PI*p),pts=[];
+    for(let j=0;j<M;j++){const t=j/M*Math.PI*2+(k?(rnd()-.5)*.12:0);let rr=rectR(t)*(1-e)+R*e;rr*=1+amp*(rnd()*2-1);
+      pts.push((cx+ox+rr*Math.cos(t)).toFixed(1)+'px '+(cy+oy+rr*Math.sin(t)).toFixed(1)+'px')}
+    const rot=k?(rnd()-.5)*10*(1-p)+p*18:0,sq=k?1+(rnd()-.5)*.06:1;
+    KF.push({clipPath:k?`polygon(${pts.join(',')})`:`inset(0 round 16px)`,transform:`rotate(${rot.toFixed(1)}deg) scale(${sq.toFixed(3)})`,easing:'steps(1,end)'});
+    const s=1-(1-(2.2*R)/Math.max(W,H))*e;
+    IN.push({transform:`scale(${s.toFixed(3)}) rotate(${((rnd()-.5)*8*p).toFixed(1)}deg)`,opacity:(1-.45*e).toFixed(2),easing:'steps(1,end)'});
+    WR.push({opacity:(Math.min(1,p*1.6)*.75).toFixed(2),easing:'steps(1,end)'})}
+  const DUR=1000;
+  const crumple=c.animate(KF,{duration:DUR,fill:'forwards'});
+  inner.animate(IN,{duration:DUR,fill:'forwards'});wr.animate(WR,{duration:DUR,fill:'forwards'});
   // El espacio de la tarjeta en la lista se cierra mientras se arruga
   const cs=getComputedStyle(el),h=el.offsetHeight;
-  el.animate([{height:h+'px',paddingTop:cs.paddingTop,paddingBottom:cs.paddingBottom},{height:'0px',paddingTop:'0px',paddingBottom:'0px'}],{duration:420,delay:420,easing:'ease-in-out',fill:'forwards'});
-  let ended=false;const end=()=>{if(ended)return;ended=true;c.remove();
+  el.animate([{height:h+'px',paddingTop:cs.paddingTop,paddingBottom:cs.paddingBottom},{height:'0px',paddingTop:'0px',paddingBottom:'0px'}],{duration:420,delay:1000,easing:'ease-in-out',fill:'forwards'});
+  let ended=false;const end=()=>{if(ended)return;ended=true;wrap.remove();
     target.animate([{transform:'scale(1)'},{transform:'scale(1.12)'},{transform:'scale(.97)'},{transform:'scale(1)'}],{duration:380,easing:'ease-out'});done()};
-  // 2) Lanzar: solo cuando ya es una bola, sale en arco hacia el botón del menú
+  // Lanzar: solo cuando ya es una bola, sale en arco, girando y alejándose, hacia el botón del menú
   crumple.onfinish=()=>{
-    const dx=b.left+b.width/2-cx,dy=b.top+b.height/2-cy;
-    const thr=c.animate([
-      {transform:'translate(0,0) rotate(24deg) scale(1)',opacity:1},
-      {transform:'translate(0,6px) rotate(10deg) scale(1.06,.92)',opacity:1,offset:.12},
-      {transform:`translate(${dx*.45}px,${dy*.45-90}px) rotate(260deg) scale(.8)`,opacity:1,offset:.55},
-      {transform:`translate(${dx}px,${dy}px) rotate(560deg) scale(.35)`,opacity:.25}],
-      {duration:640,easing:'cubic-bezier(.4,0,.6,1)',fill:'forwards'});
+    const dx=b.left+b.width/2-(a.left+cx),dy=b.top+b.height/2-(a.top+cy);
+    const thr=wrap.animate([
+      {transform:'translate(0,0) rotate(0deg) scale(1)',opacity:1},
+      {transform:'translate(0,5px) rotate(-8deg) scale(1.05,.93)',opacity:1,offset:.12},
+      {transform:`translate(${dx*.45}px,${dy*.45-90}px) rotate(240deg) scale(.75)`,opacity:1,offset:.55},
+      {transform:`translate(${dx}px,${dy}px) rotate(520deg) scale(.25)`,opacity:.2}],
+      {duration:620,easing:'cubic-bezier(.4,0,.6,1)',fill:'forwards'});
     thr.onfinish=end};
-  setTimeout(end,2200)}
+  setTimeout(end,2600)}
 let toastAct=null;
 function toast(t,label,fn){$('toastTxt').textContent=t;toastAct=fn||null;$('toastBtn').textContent=label||'';$('toastBtn').classList.toggle('hide',!fn);
   $('toast').classList.remove('hide');clearTimeout(toastT);toastT=setTimeout(()=>$('toast').classList.add('hide'),6000)}
