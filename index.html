@@ -78,9 +78,6 @@ input,select{width:100%;min-height:46px;border:1px solid var(--line);border-radi
 .item .meta{color:var(--mut);font-size:14px}
 .item .ops{grid-column:1/-1;display:flex;gap:4px;margin-left:-6px}
 .chip{display:inline-block;font-size:13px;padding:1px 8px;border-radius:20px;background:var(--card);border:1px solid var(--line);white-space:nowrap}
-.sum{display:grid;gap:6px;margin:6px 0 14px}
-.sum div{display:flex;justify-content:space-between;gap:10px;font-size:15px}
-.sum span:last-child{white-space:nowrap;font-weight:600}
 .empty{color:var(--mut);padding:28px 0;text-align:center}
 .rates{display:grid;gap:10px}
 .rates .r{display:grid;grid-template-columns:minmax(0,1fr) 140px;gap:10px;align-items:center}
@@ -129,6 +126,57 @@ body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-i
 html.standalone .web-only{display:none!important}
 .hist{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:14px 0;font-size:15px;color:var(--mut)}
 .hist b{color:var(--ink)}.hist button{min-height:42px}
+/* ---- Espaciado y jerarquía ---- */
+#vApp.wrap{max-width:720px;padding-top:clamp(16px,3vw,32px)}
+.top{margin-bottom:16px}
+.nav{padding:10px 0 14px;margin-bottom:4px;gap:8px}
+.sec{max-width:none;display:flex;flex-direction:column;gap:20px;padding:20px 0 40px}
+.sec .panel,.sec>.panel:first-child{margin-top:0}
+.panel{padding:clamp(18px,4vw,24px);border-radius:18px}
+.panel h3,.listHead{font:700 17px/1.2 Archivo,Inter,sans-serif;margin:0 0 14px}
+.listHead{margin:4px 2px 12px}
+.secHead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 2px -4px}
+.secHead h2{margin:0;font-size:24px}
+.stack{display:flex;flex-direction:column;gap:16px}
+fieldset.panel{border:0;margin:0;min-width:0}
+.step{display:flex;align-items:center;gap:10px;font:700 16px/1.2 Archivo,Inter,sans-serif;padding:0;margin:0 0 18px;float:left;width:100%}
+.step+*{clear:both}
+.step span{width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-size:13px}
+.field{margin-bottom:18px}.field.last,fieldset .field:last-child{margin-bottom:0}
+label{margin-bottom:8px}
+.hint{color:var(--mut);font-size:13.5px;line-height:1.4;margin-top:6px}
+.hint:empty{display:none}
+.row2{gap:14px}
+.aux{margin:2px 0 0;min-height:52px;padding:0 16px}
+.totalBox{display:flex;flex-direction:column;gap:14px}
+.totalBox .calc{margin:0;padding:4px 0 0;border:0;background:none;align-items:center}
+.totalBox .calc b{font-size:30px}
+.totalBox .err{margin:0}.totalBox .err:empty{display:none}
+.mini{margin-top:0;padding:14px 18px}
+.cred{padding:24px 24px 20px}
+.cred .sub{gap:8px 20px;margin-top:12px}
+.filters .row2 .field{margin-bottom:0}
+.sumRows{display:grid;gap:10px;margin-bottom:4px}
+.sumRows div{display:flex;justify-content:space-between;gap:12px;font-size:15px}
+.sumRows span:last-child{font-weight:600;white-space:nowrap}
+.tpH{display:grid;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.sum{margin:0}.bulk{margin:16px 0 0;width:100%}
+.mini .link{white-space:nowrap}
+.list{display:flex;flex-direction:column;gap:12px}
+.item{display:block;background:var(--card);border:0;border-radius:16px;padding:16px 18px 10px}
+.itTop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.item .ev{font-size:16.5px;line-height:1.3}
+.item .amt{font-size:19px}
+.where{color:var(--mut);font-size:14px;margin-top:4px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{padding:3px 10px;background:var(--bg)}
+.how{font-size:14px;margin-top:10px;color:var(--ink)}
+.item .ops{margin:8px -6px 0;padding-top:6px;border-top:1px solid var(--line)}
+.empty{background:var(--card);border-radius:16px;padding:28px 18px}
+.hist{background:var(--card);border-radius:16px;padding:16px 18px}
+.inst{margin-bottom:16px}
+@media(max-width:600px){.row2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.filters .row2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}#otroW{grid-template-columns:minmax(0,1fr)}.secHead h2{font-size:22px}}
+@media(max-width:360px){.filters .row2{grid-template-columns:minmax(0,1fr)}.filters .row2 .field:first-child{margin-bottom:18px}}
 .hide{display:none!important}
 .status{font-size:13px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(prefers-reduced-motion:no-preference){.cred .big{transition:transform .2s}.cred .big.pop{transform:scale(1.04)}}
@@ -177,44 +225,50 @@ html.standalone .web-only{display:none!important}
     <button type="button" id="nList" data-go="turnos">Mis turnos <span class="cnt hide" id="nBadge"></span></button>
   </nav>
   <section class="sec" id="secAdd">
-      <form class="panel" id="fRec">
-        <h2 id="fTitle">Añadir turno</h2>
-        <div class="field"><label for="ve">Lugar</label><select id="ve"></select></div>
-        <div class="field" id="esW"><label for="es">Evento</label><select id="es"></select><div class="mut" style="margin-top:4px">Agenda cargada al 24 nov 2026. Si no aparece, elige «Escribir otro evento».</div></div>
-        <div class="field hide" id="evW"><label for="ev">Nombre del evento</label><input id="ev" list="evList" placeholder="Ej. Feria empresarial"><datalist id="evList"></datalist></div>
-        <div class="field"><label id="tipoL">Tipo de turno</label><div class="seg" id="tipo" role="group" aria-labelledby="tipoL">
-          <button type="button" data-t="evento" aria-pressed="true">Evento</button><button type="button" data-t="montaje" aria-pressed="false">Montaje</button><button type="button" data-t="desmontaje" aria-pressed="false">Desmontaje</button></div></div>
-        <div class="row2">
-          <div class="field"><label for="fe">Fecha</label><input id="fe" type="date" required><div class="mut" id="feHint" style="margin-top:4px"></div></div>
-          <div class="field"><label for="ho">Horas trabajadas</label><input id="ho" type="text" placeholder="Ej. 10:45" autocomplete="off" required><div class="mut" id="hoHint" style="margin-top:4px">Horas:minutos, p. ej. 8:30</div></div>
+      <div class="secHead"><h2 id="fTitle">Añadir turno</h2><button type="button" id="cx" class="link hide">Cancelar edición</button></div>
+      <form id="fRec" class="stack">
+        <fieldset class="panel">
+          <legend class="step"><span>1</span>¿Dónde trabajaste?</legend>
+          <div class="field"><label for="ve">Lugar</label><select id="ve"></select></div>
+          <div class="field" id="esW"><label for="es">Evento</label><select id="es"></select><div class="hint">Agenda cargada al 24 nov 2026. Si no aparece, elige «Escribir otro evento».</div></div>
+          <div class="field hide" id="evW"><label for="ev">Nombre del evento</label><input id="ev" list="evList" placeholder="Ej. Feria empresarial"><datalist id="evList"></datalist></div>
+          <div class="field"><label id="tipoL">Tipo de turno</label><div class="seg" id="tipo" role="group" aria-labelledby="tipoL">
+            <button type="button" data-t="evento" aria-pressed="true">Evento</button><button type="button" data-t="montaje" aria-pressed="false">Montaje</button><button type="button" data-t="desmontaje" aria-pressed="false">Desmontaje</button></div></div>
+          <div class="field last"><label for="fe">Fecha</label><input id="fe" type="date" required><div class="hint" id="feHint"></div></div>
+        </fieldset>
+        <fieldset class="panel">
+          <legend class="step"><span>2</span>¿Cuánto trabajaste?</legend>
+          <div class="field"><label for="ho">Horas trabajadas</label><input id="ho" type="text" placeholder="Ej. 10:45" autocomplete="off" required><div class="hint" id="hoHint">Horas:minutos, p. ej. 8:30</div></div>
+          <div class="field"><label for="ca">Cargo</label><select id="ca"></select></div>
+          <div class="row2 hide" id="otroW">
+            <div class="field"><label for="on">Nombre del cargo</label><input id="on" placeholder="Ej. Logística"></div>
+            <div class="field"><label for="ov">Valor por hora</label><input id="ov" type="number" inputmode="numeric" min="0" step="100"></div>
+          </div>
+          <button type="button" class="aux" id="aux" aria-pressed="false"><span>Auxilio de transporte <b id="auxV" style="white-space:nowrap">+ $ 10.000</b></span><span class="tick" aria-hidden="true"></span></button>
+        </fieldset>
+        <div class="panel totalBox">
+          <div class="calc"><div><div class="hint" style="margin:0">Total de este turno</div><span id="calcTxt">0 h × $ 0</span></div><b id="calc">$ 0</b></div>
+          <button class="pri" id="sv" style="width:100%">Añadir</button>
+          <p class="err" id="ferr"></p>
         </div>
-        <div class="field"><label for="ca">Cargo</label><select id="ca"></select></div>
-        <div class="row2 hide" id="otroW">
-          <div class="field"><label for="on">Nombre del cargo</label><input id="on" placeholder="Ej. Logística"></div>
-          <div class="field"><label for="ov">Valor por hora</label><input id="ov" type="number" inputmode="numeric" min="0" step="100"></div>
-        </div>
-        <button type="button" class="aux" id="aux" aria-pressed="false"><span>Auxilio de transporte <b id="auxV" style="white-space:nowrap">+ $ 10.000</b></span><span class="tick" aria-hidden="true"></span></button>
-        <div class="calc"><span id="calcTxt">0 h × $ 0</span><b id="calc">$ 0</b></div>
-        <div class="acts"><button class="pri" id="sv">Añadir</button><button type="button" id="cx" class="hide">Cancelar</button></div>
-        <p class="err" id="ferr"></p>
       </form>
-      <div class="mini"><span>Por cobrar: <b id="miniTot">$ 0</b></span><button type="button" class="link" data-go="turnos">Ver mis turnos</button></div>
+      <div class="mini"><span>Total por cobrar: <b id="miniTot">$ 0</b></span><button type="button" class="link" data-go="turnos">Ver mis turnos</button></div>
   </section>
   <section class="sec hide" id="secList">
-      <div class="cred" aria-live="polite" style="margin-top:12px">
+      <div class="cred" aria-live="polite">
         <div class="lbl" id="credLbl">Por cobrar</div>
         <div class="big" id="tot">$ 0</div>
         <div class="sub"><span id="totP">Pagado $ 0</span><span id="totH">0 horas</span><span id="totN">0 turnos</span></div>
       </div>
-      <div class="panel">
+      <div class="panel filters">
+        <div class="field"><label for="q">Buscar</label><input id="q" type="search" placeholder="Evento, lugar o tipo de turno"></div>
         <div class="row2">
-          <div class="field"><label for="q">Buscar evento</label><input id="q" type="search" placeholder="Escribe para filtrar"></div>
-          <div class="field"><label for="mo">Mes</label><select id="mo"></select></div>
+          <div class="field last"><label for="mo">Mes</label><select id="mo"></select></div>
+          <div class="field last"><label for="pf">Estado de pago</label><select id="pf"><option value="">Todos</option><option value="pend">Por cobrar</option><option value="paid">Pagados</option></select></div>
         </div>
-        <div class="field"><label for="pf">Estado de pago</label><select id="pf"><option value="">Todos</option><option value="pend">Por cobrar</option><option value="paid">Pagados</option></select></div>
-        <div class="sum" id="sum"></div>
-        <ul class="list" id="list"></ul>
       </div>
+      <div class="panel hide" id="sumP"><h3>Resumen</h3><div class="sum" id="sum"></div></div>
+      <div><h3 class="listHead">Turnos</h3><ul class="list" id="list"></ul></div>
   </section>
 </div>
 <div class="sheetBg hide" id="gSheet" role="dialog" aria-modal="true" aria-labelledby="gTitle">
@@ -500,17 +554,20 @@ function render(pop){
   $('credLbl').textContent=(q||mo||pf)?'Por cobrar (filtrado)':'Por cobrar';
   if(pop){const b=$('tot');b.classList.add('pop');setTimeout(()=>b.classList.remove('pop'),200)}
   const by={};let auxT=0;rs.forEach(r=>{const a=+r.aux||0;auxT+=a;by[r.cargoNombre]=(by[r.cargoNombre]||0)+r.total-a});if(auxT)by['Auxilio de transporte']=auxT;const tp={};rs.forEach(r=>{const k=TIPOS[r.tipo]||'Evento';tp[k]=(tp[k]||0)+recMin(r)});
-  $('sum').innerHTML=Object.keys(by).length>1?Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div><span>${esc(k)}</span><span>${money(v)}</span></div>`).join(''):'';
-  if(Object.keys(tp).length>1)$('sum').innerHTML+=`<div><span>Horas por tipo</span><span>${Object.entries(tp).map(([k,v])=>esc(k)+' '+fmtHM(v)).join(' · ')}</span></div>`;
-  bulkArm=false;$('sum').insertAdjacentHTML('beforeend',pend.length>1?`<button type="button" class="bulk" id="bulk">Marcar ${pend.length} turnos como pagados (${money(tot)})</button>`:'');
+  let sh=Object.keys(by).length>1?'<div class="sumRows">'+Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div><span>${esc(k)}</span><span>${money(v)}</span></div>`).join('')+'</div>':'';
+  if(Object.keys(tp).length>1)sh+=`<div class="tpH"><span class="hint" style="margin:0">Horas por tipo</span><div class="tags">${Object.entries(tp).map(([k,v])=>`<span class="chip">${esc(k)}: <b>${fmtHM(v)}</b></span>`).join('')}</div></div>`;
+  bulkArm=false;if(pend.length>1)sh+=`<button type="button" class="bulk" id="bulk">Marcar ${pend.length} turnos como pagados (${money(tot)})</button>`;
+  $('sum').innerHTML=sh;$('sumP').classList.toggle('hide',!sh);
   // Aviso del historial sin cargar
   const hidden=(pf==='pend')?[]:unl.filter(m=>!mo||m===mo),hn=hidden.reduce((s,m)=>s+archIdx[m].n,0);
   const histBox=hidden.length?`<li class="hist"><span>${q?'La búsqueda aún no incluye':'Además hay'} <b>${hn} ${hn===1?'turno pagado':'turnos pagados'}</b> de ${hidden.length===1?esc(monthLabel(hidden[0])):hidden.length+' meses'} en el historial.</span><button type="button" id="histGo">${q?'Buscar también en el historial':'Ver historial'}</button></li>`:'';
   if(!rs.length){$('list').innerHTML=`<li class="empty">${!loaded?'Cargando tus turnos…':(RECS.length||hidden.length)?'Ningún turno cargado coincide con el filtro.':'Aún no tienes turnos. Añade el primero en «Añadir turno».'}</li>`+histBox;return}
   $('list').innerHTML=rs.map(r=>{
     const d=r.fecha?new Date(r.fecha+'T12:00').toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'}):'';
-    return `<li class="item${r.pagado?' paid':''}"><div class="ev">${esc(r.evento)}</div><div class="amt">${money(r.total)}</div>
-    <div class="meta">${r.lugar?esc(r.lugar.replace(/ \(antiguo.*\)/,''))+' · ':''}${esc(d)} · ${r.tipo&&r.tipo!=='evento'?`<span class="chip t-${r.tipo}">${TIPOS[r.tipo]}</span> `:''}<span class="chip">${esc(r.cargoNombre)}</span> · ${fmtHM(recMin(r))} × ${money(r.tarifa)}${r.aux?' + auxilio '+money(r.aux):''}${r._arch?' · <span class="chip">Historial</span>':''}</div><div></div>
+    return `<li class="item${r.pagado?' paid':''}"><div class="itTop"><div class="ev">${esc(r.evento)}</div><div class="amt">${money(r.total)}</div></div>
+    <div class="where">${r.lugar?esc(r.lugar.replace(/ \(antiguo.*\)/,''))+' · ':''}${esc(d)}</div>
+    <div class="tags">${r.tipo&&r.tipo!=='evento'?`<span class="chip t-${r.tipo}">${TIPOS[r.tipo]}</span>`:''}<span class="chip">${esc(r.cargoNombre)}</span>${r._arch?'<span class="chip">Historial</span>':''}</div>
+    <div class="how">${fmtHM(recMin(r))} × ${money(r.tarifa)}${r.aux?' + auxilio '+money(r.aux):''}</div>
     <div class="ops"><button class="link" data-ed="${esc(r.id)}">Editar</button><button class="link" data-del="${esc(r.id)}">Eliminar</button><button class="pay" data-pay="${esc(r.id)}" aria-pressed="${!!r.pagado}">${r.pagado?'✓ Pagado':'Marcar pagado'}</button></div></li>`}).join('')+histBox;
 }
 function openEdit(r){editing=r.id;fillCargos();
