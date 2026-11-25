@@ -832,8 +832,7 @@ $('sum').addEventListener('click',e=>{const b=e.target.closest('#bulk');if(!b)re
   holdR++;let left=cards.length||1;const fin=()=>{if(--left<=0){holdR--;render(true)}};
   if(!cards.length)fin();cards.forEach((c,i)=>setTimeout(()=>fly(c,$('nPaid'),fin),i*90));saveMany(ch);
   toast(ids.size+' turnos movidos a Turnos pagados','Ver',()=>go('pagados'))});
-// Animación: la tarjeta se arruga en su sitio como una hoja de papel (movimiento continuo,
-// con el borde cada vez más irregular) hasta quedar hecha una bola, y solo entonces sale lanzada hacia el
+// Animación: la tarjeta se transforma en su sitio de rectángulo a una bola perfecta (movimiento continuo) hasta quedar hecha una bola, y solo entonces sale lanzada hacia el
 // botón del menú. La tarjeta conserva siempre su color.
 function fly(el,target,done){
   const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -844,25 +843,23 @@ function fly(el,target,done){
   // Envoltorio sin recorte (para la sombra) y copia de la tarjeta recortada con la forma arrugada
   const wrap=document.createElement('div');wrap.className='flyWrap';
   Object.assign(wrap.style,{left:a.left+'px',top:a.top+'px',width:W+'px',height:H+'px'});
-  const c=el.cloneNode(true);c.classList.add('flyClone');c.removeAttribute('id');
+  const c=el.cloneNode(true);c.classList.add('flyClone');c.removeAttribute('id');Object.assign(c.style,{inset:'auto',left:'0px',top:'0px',width:W+'px',height:H+'px'});
   const inner=document.createElement('div');inner.className='flyInner';while(c.firstChild)inner.appendChild(c.firstChild);
-  inner.style.padding=getComputedStyle(el).padding;
+  inner.style.padding=getComputedStyle(el).padding;Object.assign(inner.style,{inset:'auto',left:'50%',top:'50%',width:W+'px',height:H+'px',boxSizing:'border-box'});
   c.append(inner);wrap.appendChild(c);
   document.body.appendChild(wrap);el.style.visibility='hidden';
   // Forma arrugada: polígono irregular que pasa del rectángulo a una bola
   let seed=(a.top*7+a.left*13)|0;const rnd=()=>{seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff};
   const rectR=t=>{const co=Math.abs(Math.cos(t)),si=Math.abs(Math.sin(t));return Math.min(co>1e-6?cx/co:1e9,si>1e-6?cy/si:1e9)};
-  const M=56,N=32,KF=[],IN=[],WR=[];
+  const M=72,N=32,KF=[],IN=[],WR=[];
   // Ángulos de muestreo: uniformes + las 4 esquinas, para que el primer cuadro sea exactamente la tarjeta
   const ca=Math.atan2(cy,cx),ANG=[...Array.from({length:M},(_,j)=>j/M*Math.PI*2),ca,Math.PI-ca,Math.PI+ca,2*Math.PI-ca].sort((x,y)=>x-y);
-  for(let k=0;k<=N;k++){const p=k/N,e=p*p*(3-2*p),amp=k===0?0:.06+.2*Math.sin(Math.PI*Math.min(1,p*1.15))+(p>.85?.1:0);
+  for(let k=0;k<=N;k++){const p=k/N,e=p*p*(3-2*p),amp=0;
     const ox=0,oy=0,pts=[];
-    for(let j=0;j<ANG.length;j++){const t=ANG[j]+(k?(rnd()-.5)*.08:0);let rr=rectR(t)*(1-e)+R*e;rr*=1+amp*(rnd()*2-1);
+    for(let j=0;j<ANG.length;j++){const t=ANG[j];let rr=rectR(t)*(1-e)+R*e;
       pts.push((cx+ox+rr*Math.cos(t)).toFixed(1)+'px '+(cy+oy+rr*Math.sin(t)).toFixed(1)+'px')}
     
-    KF.push({clipPath:`polygon(${pts.join(',')})`});
-    const s=1-(1-(2.2*R)/Math.max(W,H))*e;
-    IN.push({transform:`scale(${s.toFixed(3)})`,opacity:(1-.45*e).toFixed(2)});
+    {const D=2*R,w=W+(D-W)*e,h2=H+(D-H)*e,rad=16+(D/2-16)*e;IN.push({transform:`translate(-50%,-50%) scale(${Math.min(w/W,h2/H).toFixed(3)})`,opacity:(1-.35*e).toFixed(2)});KF.push({left:((W-w)/2).toFixed(1)+'px',top:((H-h2)/2).toFixed(1)+'px',width:w.toFixed(1)+'px',height:h2.toFixed(1)+'px',borderRadius:rad.toFixed(1)+'px'})}
   }
   const DUR=1000,EZ='cubic-bezier(.35,.05,.35,1)';
   const crumple=c.animate(KF,{duration:DUR,easing:EZ,fill:'forwards'});
