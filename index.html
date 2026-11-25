@@ -259,6 +259,15 @@ input[type=date]::-webkit-datetime-edit{padding:0}
 .hrsDet{margin-top:8px;font-size:13.5px;color:var(--mut)}
 .hrsDet summary{cursor:pointer;color:var(--ink);font-weight:600;min-height:32px;display:flex;align-items:center}
 .hrsDet div{padding:2px 0}
+.nav{grid-template-columns:repeat(3,minmax(0,1fr))}
+.nav .lg{display:none}.nav .sm{display:inline}
+@media(max-width:959px){.nav button{white-space:nowrap;padding:0 8px;font-size:15px;gap:6px}.nav .cnt{min-width:20px;height:20px;line-height:20px;font-size:12px;padding:0 5px}}
+.cred.paidV{background:var(--ink);color:var(--bg)}
+.cred.paidV::after{border-color:color-mix(in srgb,var(--bg) 8%,transparent)}
+.flyClone{box-shadow:0 18px 40px rgba(0,0,0,.35);border-radius:16px;overflow:hidden}
+.item{overflow:hidden}
+.chip.paidOn{color:var(--mut)}
+@media(min-width:960px){.nav .lg{display:inline}.nav .sm{display:none}}
 .hide{display:none!important}
 .status{font-size:13px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(prefers-reduced-motion:no-preference){.cred .big{transition:transform .2s}.cred .big.pop{transform:scale(1.04)}}
@@ -311,8 +320,9 @@ input[type=date]::-webkit-datetime-edit{padding:0}
     <button id="out">Cerrar sesión</button>
   </div>
   <nav class="nav" aria-label="Secciones">
-    <button type="button" id="nAdd" data-go="anadir">＋ Añadir turno</button>
+    <button type="button" id="nAdd" data-go="anadir"><span class="lg">＋ Añadir turno</span><span class="sm">＋ Añadir</span></button>
     <button type="button" id="nList" data-go="turnos">Mis turnos <span class="cnt hide" id="nBadge"></span></button>
+    <button type="button" id="nPaid" data-go="pagados"><span class="lg">✓ Turnos pagados</span><span class="sm">Pagados</span></button>
   </nav>
   <div class="sideSum desk"><span>Por cobrar</span><b id="sideTot">$ 0</b><span id="sidePend">Sin turnos pendientes</span></div>
   <footer class="credit desk">Diseñado por Sergio y Claude<br>© 2026 · Todos los derechos reservados</footer>
@@ -372,7 +382,7 @@ input[type=date]::-webkit-datetime-edit{padding:0}
       <div class="mini mob"><span>Total por cobrar: <b id="miniTot">$ 0</b></span><button type="button" class="link" data-go="turnos">Ver mis turnos</button></div>
   </section>
   <section class="sec hide" id="secList">
-    <div class="secHead desk listTitle"><h2>Mis turnos</h2></div>
+    <div class="secHead desk listTitle"><h2 id="listH">Mis turnos</h2></div>
     <div class="lcol">
       <div class="cred" aria-live="polite">
         <div class="lbl" id="credLbl">Por cobrar</div>
@@ -381,10 +391,8 @@ input[type=date]::-webkit-datetime-edit{padding:0}
       </div>
       <div class="panel filters">
         <div class="field"><label for="q">Buscar</label><input id="q" type="search" placeholder="Evento, lugar o tipo de turno"></div>
-        <div class="row2">
-          <div class="field last"><label for="mo">Mes</label><select id="mo"></select></div>
-          <div class="field last"><label for="pf">Estado de pago</label><select id="pf"><option value="">Todos</option><option value="pend">Por cobrar</option><option value="paid">Pagados</option></select></div>
-        </div>
+        <div class="field last"><label for="mo">Mes</label><select id="mo"></select></div>
+        <select id="pf" class="hide" aria-hidden="true" tabindex="-1"><option value="pend">Por cobrar</option><option value="paid">Pagados</option></select>
       </div>
       <div class="panel hide" id="sumP"><h3>Resumen</h3><div class="sum" id="sum"></div></div>
     </div>
@@ -524,11 +532,14 @@ const delRec=id=>write(()=>deleteDoc(doc(col,id)));
 const saveMany=recs=>write(async()=>{for(let i=0;i<recs.length;i+=400){const b=writeBatch(db);recs.slice(i,i+400).forEach(x=>b.set(doc(col,x.id),clean(x)));await b.commit()}});
 window.addEventListener('beforeunload',e=>{if(inflight){e.preventDefault();e.returnValue=''}});
 
-function go(t,noHash){const add=t!=='turnos';$('secAdd').classList.toggle('hide',!add);$('secList').classList.toggle('hide',add);
-  $('nAdd').setAttribute('aria-current',add?'page':'false');$('nList').setAttribute('aria-current',add?'false':'page');
-  if(!noHash&&location.hash!=='#'+(add?'anadir':'turnos'))history.replaceState(null,'','#'+(add?'anadir':'turnos'));window.scrollTo({top:0})}
-document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(!g)return;if(g.dataset.go==='turnos'&&editing)resetForm();go(g.dataset.go)});
-window.addEventListener('hashchange',()=>go(location.hash==='#turnos'?'turnos':'anadir',true));
+let VIEW='turnos';
+function go(t,noHash){t=t==='turnos'||t==='pagados'?t:'anadir';const add=t==='anadir';
+  $('secAdd').classList.toggle('hide',!add);$('secList').classList.toggle('hide',add);
+  [['nAdd','anadir'],['nList','turnos'],['nPaid','pagados']].forEach(([i,k])=>$(i).setAttribute('aria-current',k===t?'page':'false'));
+  if(!add){VIEW=t;$('pf').value=t==='pagados'?'paid':'pend';$('listH').textContent=t==='pagados'?'Turnos pagados':'Mis turnos';render()}
+  if(!noHash&&location.hash!=='#'+t)history.replaceState(null,'','#'+t);window.scrollTo({top:0})}
+document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(!g)return;if(g.dataset.go!=='anadir'&&editing)resetForm();go(g.dataset.go)});
+window.addEventListener('hashchange',()=>go(location.hash.slice(1),true));
 function enterApp(){
   $('vLogin').classList.add('hide');$('vApp').classList.remove('hide');$('who').textContent=user;
   try{setHM(localStorage.getItem('horas_hm')||'total')}catch(e){setHM('total')}resetForm();render();go('anadir');
@@ -731,14 +742,15 @@ function allRecs(){const live=new Set(S.records.map(r=>r.id)),out=[...S.records]
   Object.keys(ARCH).forEach(m=>ARCH[m].forEach(x=>{if(!live.has(x.id))out.push({...x,_arch:m})}));return out}
 const findRec=id=>allRecs().find(x=>x.id===id);
 
-function render(pop){
+let holdR=0,pendR=false;
+function render(pop){if(holdR){pendR=true;return}pendR=false;
   const RECS=allRecs(),idxM=idxMonths(),unl=unloaded();
   const months=[...new Set(RECS.map(monthOf).filter(Boolean).concat(idxM))].sort().reverse();
   const cur=$('mo').value;
   $('mo').innerHTML='<option value="">Todos</option>'+months.map(m=>`<option value="${esc(m)}">${esc(monthLabel(m))}</option>`).join('');
   if(months.includes(cur))$('mo').value=cur;
   $('evList').innerHTML=[...new Set(S.records.map(r=>r.evento))].map(v=>`<option value="${esc(v)}">`).join('');
-  const q=$('q').value.trim().toLowerCase(),mo=$('mo').value,pf=$('pf').value;
+  const q=$('q').value.trim().toLowerCase(),mo=$('mo').value,pf=VIEW==='pagados'?'paid':'pend';const PV=pf==='paid';
   if(mo&&unl.includes(mo)){loadMonths([mo])}
   const rs=RECS.filter(r=>(!pf||(pf==='paid')===!!r.pagado)&&(!q||(r.evento+' '+(r.lugar||'')+' '+(TIPOS[r.tipo]||'')).toLowerCase().includes(q))&&(!mo||(r.fecha||'').startsWith(mo)))
     .sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')||String(b.id).localeCompare(String(a.id)));
@@ -747,24 +759,24 @@ function render(pop){
   const ex=extraM.reduce((a,m)=>({n:a.n+archIdx[m].n,total:a.total+archIdx[m].total,mins:a.mins+archIdx[m].mins}),{n:0,total:0,mins:0});
   const tot=rs.reduce((s,r)=>s+(r.pagado?0:r.total),0),paid=rs.reduce((s,r)=>s+(r.pagado?r.total:0),0)+ex.total,mins=rs.reduce((s,r)=>s+recMin(r),0)+ex.mins,cnt=rs.length+ex.n;
   const pend=rs.filter(r=>!r.pagado);
-  $('tot').textContent=money(tot);{const allPend=S.records.filter(r=>!r.pagado);$('miniTot').textContent=money(allPend.reduce((s,r)=>s+r.total,0));$('sideTot').textContent=$('miniTot').textContent;$('sidePend').textContent=allPend.length?(allPend.length+(allPend.length===1?' turno pendiente':' turnos pendientes')):'Sin turnos pendientes';$('nBadge').textContent=allPend.length;$('nBadge').classList.toggle('hide',!allPend.length)}$('totP').textContent='Pagado '+money(paid);$('totH').textContent=fmtHM(mins);
+  $('tot').textContent=money(PV?paid:tot);document.querySelector('.cred').classList.toggle('paidV',PV);$('totP').classList.add('hide');{const allPend=S.records.filter(r=>!r.pagado);$('miniTot').textContent=money(allPend.reduce((s,r)=>s+r.total,0));$('sideTot').textContent=$('miniTot').textContent;$('sidePend').textContent=allPend.length?(allPend.length+(allPend.length===1?' turno pendiente':' turnos pendientes')):'Sin turnos pendientes';$('nBadge').textContent=allPend.length;$('nBadge').classList.toggle('hide',!allPend.length)}$('totP').textContent='Pagado '+money(paid);$('totH').textContent=fmtHM(mins);
   $('totN').textContent=cnt+(cnt===1?' turno':' turnos');
-  $('credLbl').textContent=(q||mo||pf)?'Por cobrar (filtrado)':'Por cobrar';
+  $('credLbl').textContent=(PV?'Total pagado':'Por cobrar')+((q||mo)?' (filtrado)':'');
   if(pop){const b=$('tot');b.classList.add('pop');setTimeout(()=>b.classList.remove('pop'),200)}
   const by={};let auxT=0;rs.forEach(r=>{const a=+r.aux||0;auxT+=a;by[r.cargoNombre]=(by[r.cargoNombre]||0)+r.total-a});if(auxT)by['Auxilio de transporte']=auxT;const tp={};rs.forEach(r=>{const k=TIPOS[r.tipo]||'Evento';tp[k]=(tp[k]||0)+recMin(r)});
   let sh=Object.keys(by).length>1?'<div class="sumRows">'+Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div><span>${esc(k)}</span><span>${money(v)}</span></div>`).join('')+'</div>':'';
   if(Object.keys(tp).length>1)sh+=`<div class="tpH"><span class="hint" style="margin:0">Horas por tipo</span><div class="tags">${Object.entries(tp).map(([k,v])=>`<span class="chip">${esc(k)}: <b>${fmtHM(v)}</b></span>`).join('')}</div></div>`;
-  bulkArm=false;if(pend.length>1)sh+=`<button type="button" class="bulk" id="bulk">Marcar ${pend.length} turnos como pagados (${money(tot)})</button>`;
+  bulkArm=false;if(!PV&&pend.length>1)sh+=`<button type="button" class="bulk" id="bulk">Marcar ${pend.length} turnos como pagados (${money(tot)})</button>`;
   $('sum').innerHTML=sh;$('sumP').classList.toggle('hide',!sh);
   // Aviso del historial sin cargar
   const hidden=(pf==='pend')?[]:unl.filter(m=>!mo||m===mo),hn=hidden.reduce((s,m)=>s+archIdx[m].n,0);
   const histBox=hidden.length?`<li class="hist"><span>${q?'La búsqueda aún no incluye':'Además hay'} <b>${hn} ${hn===1?'turno pagado':'turnos pagados'}</b> de ${hidden.length===1?esc(monthLabel(hidden[0])):hidden.length+' meses'} en el historial.</span><button type="button" id="histGo">${q?'Buscar también en el historial':'Ver historial'}</button></li>`:'';
-  if(!rs.length){$('list').innerHTML=`<li class="empty">${!loaded?'Cargando tus turnos…':(RECS.length||hidden.length)?'Ningún turno cargado coincide con el filtro.':'Aún no tienes turnos. Añade el primero en «Añadir turno».'}</li>`+histBox;return}
+  if(!rs.length){$('list').innerHTML=`<li class="empty">${!loaded?'Cargando tus turnos…':(q||mo)?'Ningún turno coincide con el filtro.':PV?(hidden.length?'Tus turnos pagados más antiguos están en el historial.':'Aún no tienes turnos pagados. Cuando marques uno como pagado, aparecerá aquí.'):(RECS.length?'No tienes turnos por cobrar. Todo está pagado.':'Aún no tienes turnos. Añade el primero en «Añadir turno».')}</li>`+histBox;return}
   $('list').innerHTML=rs.map(r=>{
     const d=r.fecha?new Date(r.fecha+'T12:00').toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'}):'';
     return `<li class="item${r.pagado?' paid':''}"><div class="itTop"><div class="ev">${esc(r.evento)}</div><div class="amt">${money(r.total)}</div></div>
     <div class="where">${r.lugar?esc(r.lugar.replace(/ \(antiguo.*\)/,''))+' · ':''}${esc(d)}</div>
-    <div class="tags">${r.tipo&&r.tipo!=='evento'?`<span class="chip t-${r.tipo}">${TIPOS[r.tipo]}</span>`:''}<span class="chip">${esc(r.cargoNombre)}</span>${r._arch?'<span class="chip">Historial</span>':''}</div>
+    <div class="tags">${r.tipo&&r.tipo!=='evento'?`<span class="chip t-${r.tipo}">${TIPOS[r.tipo]}</span>`:''}<span class="chip">${esc(r.cargoNombre)}</span>${r.pagado&&r.pagadoEl?`<span class="chip paidOn">Pagado el ${esc(fdShort(r.pagadoEl))}</span>`:''}${r._arch?'<span class="chip">Historial</span>':''}</div>
     <div class="how">${r.rango?esc(fdShort(r.rango.desde)+(r.rango.hasta!==r.rango.desde?' – '+fdShort(r.rango.hasta):'')+' · '+r.rango.dias+(r.rango.dias===1?' día':' días')+(r.rango.igual===false?' · horarios distintos':' de '+r.rango.entrada+' a '+r.rango.salida))+' · ':r.entrada&&r.salida?esc(r.entradaDia&&r.salidaDia&&r.entradaDia!==r.salidaDia?fdShort(r.entradaDia)+' '+r.entrada+' → '+fdShort(r.salidaDia)+' '+r.salida:r.entrada+' – '+r.salida)+' · ':''}${fmtHM(recMin(r))} × ${money(r.tarifa)}${r.aux?' + auxilio '+(r.rango&&r.rango.dias>1&&r.aux===r.rango.dias*(+S.aux||0)?r.rango.dias+' × '+money(S.aux):money(r.aux)):''}</div>
     ${r.rango&&r.rango.igual===false&&Array.isArray(r.rango.detalle)?`<details class="hrsDet"><summary>Ver horario de cada día</summary>${r.rango.detalle.map(x=>`<div>${esc(dayLabel(x.dia))}: ${x.horas&&x.horas.length?esc(x.horas.map(w=>w.e+'–'+w.s).join(', ')):'no trabajado'}</div>`).join('')}</details>`:''}
     <div class="ops"><button class="link" data-ed="${esc(r.id)}">Editar</button><button class="link" data-del="${esc(r.id)}">Eliminar</button><button class="pay" data-pay="${esc(r.id)}" aria-pressed="${!!r.pagado}">${r.pagado?'✓ Pagado':'Marcar pagado'}</button></div></li>`}).join('')+histBox;
@@ -791,9 +803,12 @@ $('list').addEventListener('click',async e=>{
   const ed=e.target.closest('[data-ed]'),dl=e.target.closest('[data-del]'),py=e.target.closest('[data-pay]');
   const id=(ed||dl||py||{}).dataset;if(!id)return;
   const r=findRec(id.ed||id.del||id.pay);if(!r)return;
-  if(py){
-    if(r._arch){try{await unarchive(r,{pagado:false})}catch(x){return}render(true);return}
-    r.pagado=!r.pagado;if(r.pagado)r.pagadoEl=today();else delete r.pagadoEl;saveRec(r);render(true);return}
+  if(py){const card=py.closest('.item');
+    if(r._arch){holdR++;fly(card,$('nList'),()=>{holdR--;render(true)});try{await unarchive(r,{pagado:false})}catch(x){render(true);return}
+      toast('Volvió a Mis turnos','Ver',()=>go('turnos'));return}
+    r.pagado=!r.pagado;if(r.pagado)r.pagadoEl=today();else delete r.pagadoEl;saveRec(r);
+    holdR++;fly(card,r.pagado?$('nPaid'):$('nList'),()=>{holdR--;render(true)});
+    toast(r.pagado?'Movido a Turnos pagados':'Volvió a Mis turnos','Ver',()=>go(r.pagado?'pagados':'turnos'));return}
   if(ed){
     if(r._arch){try{await unarchive(r,{})}catch(x){return}const live={...r};delete live._arch;openEdit(live);return}
     openEdit(r);return}
@@ -809,7 +824,28 @@ let bulkArm=false;
 $('sum').addEventListener('click',e=>{const b=e.target.closest('#bulk');if(!b)return;
   if(!bulkArm){bulkArm=true;b.textContent='¿Seguro? Toca otra vez para confirmar';b.classList.add('pri');return}
   const ids=new Set([...$('list').querySelectorAll('[data-pay][aria-pressed=false]')].map(x=>x.dataset.pay));
-  const ch=[];S.records.forEach(r=>{if(ids.has(r.id)){r.pagado=true;r.pagadoEl=today();ch.push(r)}});saveMany(ch);render(true);toast(ids.size+' turnos marcados como pagados')});
+  const ch=[];S.records.forEach(r=>{if(ids.has(r.id)){r.pagado=true;r.pagadoEl=today();ch.push(r)}});saveMany(ch);
+  const cards=[...$('list').querySelectorAll('.item')].filter(c=>{const b=c.querySelector('[data-pay]');return b&&ids.has(b.dataset.pay)});
+  holdR++;let left=cards.length||1;const fin=()=>{if(--left<=0){holdR--;render(true)}};
+  if(!cards.length)fin();cards.forEach((c,i)=>setTimeout(()=>fly(c,$('nPaid'),fin),i*90));
+  toast(ids.size+' turnos movidos a Turnos pagados','Ver',()=>go('pagados'))});
+// Animación: la tarjeta vuela hacia el botón del menú (Turnos pagados o Mis turnos).
+function fly(el,target,done){
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce||!el||!target||!el.animate||!target.getClientRects().length){done();return}
+  const a=el.getBoundingClientRect(),b=target.getBoundingClientRect();
+  const c=el.cloneNode(true);c.classList.add('flyClone');c.removeAttribute('id');
+  Object.assign(c.style,{position:'fixed',left:a.left+'px',top:a.top+'px',width:a.width+'px',height:a.height+'px',margin:'0',zIndex:'60',pointerEvents:'none'});
+  document.body.appendChild(c);el.style.visibility='hidden';
+  const dx=b.left+b.width/2-(a.left+a.width/2),dy=b.top+b.height/2-(a.top+a.height/2);
+  const an=c.animate([{transform:'translate(0,0) scale(1) rotate(0deg)',opacity:1},
+    {transform:`translate(${dx*.35}px,${dy*.35-60}px) scale(.75) rotate(-3deg)`,opacity:1,offset:.4},
+    {transform:`translate(${dx}px,${dy}px) scale(.06) rotate(4deg)`,opacity:.15}],{duration:720,easing:'cubic-bezier(.45,0,.7,.2)'});
+  const h=el.offsetHeight;
+  el.animate([{height:h+'px',paddingTop:getComputedStyle(el).paddingTop,paddingBottom:getComputedStyle(el).paddingBottom},{height:'0px',paddingTop:'0px',paddingBottom:'0px'}],{duration:380,delay:260,easing:'ease-in-out',fill:'forwards'});
+  let ended=false;const end=()=>{if(ended)return;ended=true;c.remove();
+    target.animate([{transform:'scale(1)'},{transform:'scale(1.1)'},{transform:'scale(1)'}],{duration:340,easing:'ease-out'});done()};
+  an.onfinish=end;setTimeout(end,1200)}
 let toastAct=null;
 function toast(t,label,fn){$('toastTxt').textContent=t;toastAct=fn||null;$('toastBtn').textContent=label||'';$('toastBtn').classList.toggle('hide',!fn);
   $('toast').classList.remove('hide');clearTimeout(toastT);toastT=setTimeout(()=>$('toast').classList.add('hide'),6000)}
