@@ -183,6 +183,11 @@ label{margin-bottom:8px}
 .stack{gap:24px}
 .list{gap:16px}
 .listHead{margin-bottom:14px}
+/* iPhone: el campo de fecha tiene un ancho mínimo propio y se salía de la caja */
+input[type=date]{-webkit-appearance:none;appearance:none;display:block;width:100%;max-width:100%;min-width:0;text-align:left}
+input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
+input[type=date]::-webkit-datetime-edit{padding:0}
+.field{min-width:0;max-width:100%}
 .hide{display:none!important}
 .status{font-size:13px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(prefers-reduced-motion:no-preference){.cred .big{transition:transform .2s}.cred .big.pop{transform:scale(1.04)}}
