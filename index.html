@@ -7,6 +7,8 @@
 <meta name="description" content="Registra tus turnos en eventos y calcula al instante cuánto te deben pagar.">
 <script>try{if(matchMedia('(display-mode: standalone)').matches||navigator.standalone===true)document.documentElement.classList.add('standalone')}catch(e){}</script>
 <link rel="manifest" href="/manifest.webmanifest">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
 <meta name="theme-color" content="#ff5a1f">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -22,7 +24,10 @@
    PICTURE: tarjeta-credencial con el total a pagar en grande, arriba de todo.
    COLOUR and TYPE: blanco, tinta casi negra, naranja manilla #ff5a1f; Archivo 800 + Inter.
    LAYOUT: una columna; credencial, formulario, lista. Dos columnas sobre 900px. */
-:root{color-scheme:light dark;--bg:light-dark(#ffffff,#0e0e0e);--ink:light-dark(#141414,#f2f2f2);--mut:light-dark(#5f5f5f,#b0b0b0);--line:light-dark(#e2e2df,#474747);--card:light-dark(#f1f1ee,#2f2f2f);--edge:light-dark(#e6e6e2,#404040);--acc:#ff5a1f;--accInk:#ffffff;--bad:light-dark(#c2261d,#ff7b72)}
+:root{color-scheme:light dark;--bg:#ffffff;--ink:#141414;--mut:#5f5f5f;--line:#e2e2df;--card:#f1f1ee;--edge:#e6e6e2;--acc:#ff5a1f;--accInk:#ffffff;--bad:#c2261d}
+/* Colores del modo oscuro sin light-dark(), para que funcionen también en navegadores antiguos (p. ej. Samsung Internet < 27) */
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0e0e0e;--ink:#f2f2f2;--mut:#b0b0b0;--line:#474747;--card:#2f2f2f;--edge:#404040;--bad:#ff7b72}}
+:root[data-theme=dark]{--bg:#0e0e0e;--ink:#f2f2f2;--mut:#b0b0b0;--line:#474747;--card:#2f2f2f;--edge:#404040;--bad:#ff7b72}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif;overflow-x:clip}
@@ -55,8 +60,8 @@ input,select{width:100%;min-height:46px;border:1px solid var(--line);border-radi
 .nav{position:sticky;top:0;z-index:5;background:var(--bg);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;padding:8px 0 12px;margin-bottom:8px;border-bottom:1px solid var(--line)}
 .nav button{min-height:48px;border:0;border-radius:12px;background:var(--card);font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px}
 .nav button[aria-current=page]{background:var(--acc);color:var(--accInk)}
-.nav .cnt{min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--ink);color:var(--bg);font-size:13px;line-height:22px}
-.nav button[aria-current=page] .cnt{background:var(--accInk);color:var(--acc)}
+.nav .cnt{min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:#ff5a1f;color:#fff;font-size:13px;line-height:22px;font-weight:700}
+.nav button[aria-current=page] .cnt{background:#fff;color:#c2410c}
 .sec{max-width:680px;margin:0 auto}
 .sec>.panel:first-child{margin-top:12px}
 .mini{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px;padding:12px 16px;border-radius:12px;background:var(--card);font-size:15px}
