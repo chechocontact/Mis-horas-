@@ -72,7 +72,7 @@ En el plan gratuito de Netlify cada publicación cuesta créditos: sube todos lo
 - Los dispositivos se sincronizan en vivo: lo que se añade en el celular aparece en el computador sin recargar.
 - Arriba, bajo el correo, la app muestra **«Guardado en la nube ✓»** cuando el último cambio ya está en Firebase. Si dice «Sin señal…», el cambio está guardado en el teléfono y se sube solo al volver la conexión.
 - Las cuentas creadas con versiones anteriores tenían todos los turnos en una sola lista (`usuarios/{uid}.records`). Al entrar, la app los copia uno por uno al nuevo formato y deja la lista original en el campo `respaldo`.
-- Las tarifas por cargo (Acreditador 7.500, Validador 7.500, Runner 8.500, Coordinador 9.500) y el auxilio de transporte (10.000) son fijos y están en `index.html` (`DEF_RATES` y `aux:10000`). Los usuarios no pueden cambiarlos; solo el cargo «Otro» permite escribir un valor por hora.
+- Las tarifas por cargo (Acreditador 7.500, Validador 7.500, Runner 8.500, Coordinador 12.000) y el auxilio de transporte (10.000) son fijos y están en `index.html` (`DEF_RATES` y `aux:10000`). Los usuarios no pueden cambiarlos; solo el cargo «Otro» permite escribir un valor por hora.
 - Las reglas de `firestore.rules` impiden que alguien lea o modifique los turnos o el historial de otra persona. **Si actualizas desde una versión anterior, vuelve a pegar y publicar las reglas** (Firestore → Reglas): sin ellas los turnos no se pueden guardar.
 - Las cuentas son solo con correo y contraseña. Al registrarse, Firebase envía un correo de confirmación al correo indicado (el registro no se bloquea si no lo abren).
 - Las contraseñas las guarda Firebase Authentication de forma segura; la app nunca las almacena.

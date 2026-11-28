@@ -446,7 +446,7 @@ import {initializeFirestore,getFirestore,persistentLocalCache,doc,getDoc,setDoc,
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=n=>'$\u00a0'+Math.round(n||0).toLocaleString('es-CO');
-const DEF_RATES={acreditador:7500,validador:7500,runner:8500,coordinador:9500};
+const DEF_RATES={acreditador:7500,validador:7500,runner:8500,coordinador:12000};
 const NAMES={acreditador:'Acreditador',validador:'Validador',runner:'Runner',coordinador:'Coordinador',otro:'Otro'};
 const VENUES={vc:'Vive Claro Distrito Cultural',vmh:'Vive Claro Music Hall',sb:'Parque Simón Bolívar',mp:'Coliseo MedPlus',ar:'El Corazón de Bogotá Arena (antiguo Movistar Arena)',cp:'Estadio El Campín',otro:'Otro lugar (escribir)'};
 const CAT=[
